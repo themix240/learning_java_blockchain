@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.griddynamics.mmorozowski.course.java</groupId>
-    <artifactId>BlockchainMultimodule</artifactId>
+    <artifactId>blockchain-multimodule</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>BlockchainNode</module>
-        <module>BlockchainClient</module>
-        <module>Common</module>
+        <module>blockchain-node</module>
+        <module>blockchain-client</module>
+        <module>common</module>
     </modules>
 
     <properties>

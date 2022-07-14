@@ -1,10 +1,8 @@
-package Node;
+package node;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-
-import static Node.BlockchainUtils.validate;
 
 public class NodeServerThread implements Runnable {
     private Blockchain bc;

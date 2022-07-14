@@ -1,4 +1,4 @@
-package Node;
+package node;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

@@ -1,9 +1,9 @@
-package Node;
+package node;
 
 import java.io.*;
 import java.util.Properties;
 
-import static Node.BlockchainUtils.validate;
+import static node.BlockchainUtils.validate;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {

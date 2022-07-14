@@ -1,24 +1,20 @@
-package Node;
+package node;
 
 import utils.Block;
 import utils.Transaction;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import Node.BlockchainUtils;
-
-import static Node.BlockchainUtils.checkBlock;
-import static Node.BlockchainUtils.verifyTransaction;
+import static node.BlockchainUtils.checkBlock;
+import static node.BlockchainUtils.verifyTransaction;
 import static java.lang.Math.min;
 
 public class Blockchain implements Serializable {

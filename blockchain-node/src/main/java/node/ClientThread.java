@@ -1,4 +1,4 @@
-package Node;
+package node;
 
 import utils.Block;
 import utils.CryptoUtils;
@@ -16,7 +16,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static Node.BlockchainUtils.getWallet;
+import static node.BlockchainUtils.getWallet;
 import static utils.HEADERS.*;
 
 public class ClientThread implements Runnable {

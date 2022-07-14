@@ -1,4 +1,4 @@
-package Node;
+package node;
 
 public interface BlockchainFileManager {
     void saveBlockchain();

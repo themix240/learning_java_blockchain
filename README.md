@@ -6,8 +6,7 @@ Nodes are connected into peer-to-peer network, and its main functionality is ver
 transmitting new blocks to other nodes.
 
 ## Structure of project
-
-Project is divided into three maven modules
+Its multimodule maven project with three modules.
 
 - Blockchain node
 - Blockchain client
