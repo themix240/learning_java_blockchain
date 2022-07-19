@@ -3,7 +3,7 @@
 Simple proof-of-work cryptocurrency blockchain implemented in Java divided into client and node functionality.
 Client can connect to any node and start mining, make transaction or check wallet.
 Nodes are connected into peer-to-peer network, and its main functionality is verifying state of blockchain and
-transmitting new blocks to other nodes.
+transmitting new minedBlocks to other nodes.
 
 ## Structure of project
 Its multimodule maven project with three modules.

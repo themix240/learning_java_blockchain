@@ -6,14 +6,14 @@ import java.util.Properties;
 import static node.BlockchainUtils.validate;
 
 public class Main {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException {
         Blockchain bc = Blockchain.getInstance();
         int port = 0;
         int p2pPort = 0;
         String path;
         String userDBPath = null;
         //Create properties file in project dir
-        try  (InputStream inputStream = new FileInputStream("Blockchain/config.properties")) {
+        try  (InputStream inputStream = new FileInputStream("blockchain-node/config.properties")) {
             Properties properties = new Properties();
             properties.load(inputStream);
             port = Integer.parseInt(properties.getProperty("client_port")); //port on which node is listening to client connections

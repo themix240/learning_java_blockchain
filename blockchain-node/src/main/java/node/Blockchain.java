@@ -1,6 +1,8 @@
 package node;
 
-import utils.Block;
+import utils.BlockchainData;
+import utils.MinedBlock;
+import utils.NewBlock;
 import utils.Transaction;
 
 import javax.crypto.BadPaddingException;
@@ -22,31 +24,27 @@ public class Blockchain implements Serializable {
     private BlockchainFileManager blockchainFileManager;
     private final List<Transaction> transactions = Collections.synchronizedList(new ArrayList<>());
 
-    private List<Block> blocks = Collections.synchronizedList(new ArrayList<>());
+    private List<MinedBlock> minedBlocks = Collections.synchronizedList(new ArrayList<>());
     private final int nonce;
-    BlockingQueue<Block> sendNewBlock = new ArrayBlockingQueue<>(1);
+    BlockingQueue<MinedBlock> sendNewMinedBlock = new ArrayBlockingQueue<>(1);
 
-    private Blockchain() {
-        try (InputStream inputStream = new FileInputStream("Blockchain/config.properties")) {
+    private Blockchain() throws IOException, ClassNotFoundException {
+        try (InputStream inputStream = new FileInputStream("blockchain-node/config.properties")) {
             Properties properties = new Properties();
             properties.load(inputStream);
             String PATH = properties.getProperty("blockchain_path");//path where blockchain is stored - required in jetbrains project
             String fileManagerType = properties.getProperty("blockchain_file_type");
             if (fileManagerType.equals("txt"))
-                blockchainFileManager = new BlockchainTxtFileManager(PATH, blocks);
+                blockchainFileManager = new BlockchainTxtFileManager(PATH, minedBlocks);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        blockchainFileManager.loadBlockchain();
-        nonce = 6;
-        if (blocks.isEmpty()) {
-            blocks.add(new Block(System.currentTimeMillis(), 1, "0", 0)); //genesis Block
-            blockchainFileManager.saveBlockchain();
-        }
+        minedBlocks = blockchainFileManager.loadBlockchain();
+        nonce = 2;
     }
 
-    public static Blockchain getInstance() {
+    public static Blockchain getInstance() throws IOException, ClassNotFoundException {
         if (instance == null) {
             instance = new Blockchain();
         }
@@ -56,8 +54,8 @@ public class Blockchain implements Serializable {
     @Override
     public String toString() {
         StringJoiner sb = new StringJoiner("\n");
-        for (int i = 0; i < min(15, blocks.size()); i++) {
-            Block b = blocks.get(i);
+        for (int i = 0; i < min(15, minedBlocks.size()); i++) {
+            MinedBlock b = minedBlocks.get(i);
             sb.add("Block:");
             sb.add("Created by miner " + b.getId()); //change to username based on coinbase transaction
             sb.add("Miner gets 10 VC");
@@ -76,7 +74,7 @@ public class Blockchain implements Serializable {
     }
 
     public int getSize() {
-        return blocks.size();
+        return minedBlocks.size();
     }
 
     public int getNonce() {
@@ -84,25 +82,22 @@ public class Blockchain implements Serializable {
     }
 
     public String getLastHash() {
-        return blocks.size() > 0 ? blocks.get(blocks.size() - 1).getHash() : "0";
+        return minedBlocks.size() > 0 ? minedBlocks.get(minedBlocks.size() - 1).getHash() : "0";
     }
 
-    synchronized boolean acceptBlock(Block b) {
-        if (checkBlock(blocks, b, nonce)) {
-            if (b.getId() > 1) {
-                transactions.forEach(b::appendTransaction);
-                transactions.clear();
-            }
-            blocks.add(b);
-            sendNewBlock.add(b);
+    synchronized boolean acceptBlock(NewBlock b) {
+        MinedBlock mb = new MinedBlock(b, getSize()+1);
+        if (checkBlock(minedBlocks, mb, nonce)) {
+            minedBlocks.add(mb);
+            sendNewMinedBlock.add(mb);
             blockchainFileManager.saveBlockchain();
             return true;
         }
         return false;
     }
 
-    public List<Block> getBlocks() {
-        return blocks;
+    public List<MinedBlock> getBlocks() {
+        return minedBlocks;
     }
 
     public synchronized void appendMessage(Transaction t) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
@@ -110,5 +105,8 @@ public class Blockchain implements Serializable {
             t.setId(transactions.size() + 1);
             transactions.add(t);
         }
+    }
+    public BlockchainData getBlockchainData() {
+        return new BlockchainData(nonce, transactions, minedBlocks.size(), getLastHash());
     }
 }

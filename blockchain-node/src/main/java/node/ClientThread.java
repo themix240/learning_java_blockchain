@@ -1,9 +1,6 @@
 package node;
 
-import utils.Block;
-import utils.CryptoUtils;
-import utils.Transaction;
-import utils.User;
+import utils.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -118,11 +115,8 @@ public class ClientThread implements Runnable {
                     writeBlockchainData();
                     break;
                 case "mined":
-                    long timeStamp = objectInputStream.readLong();
-                    int magicNumber = objectInputStream.readInt();
-                    String signature = (String) objectInputStream.readObject();
-                    Block b = new Block(timeStamp, bc.getSize() + 1, bc.getLastHash(), magicNumber);
-                    generateCoinbase(b);
+                   NewBlock b = (NewBlock) objectInputStream.readObject();
+                    //generateCoinbase(b);
                     if (bc.acceptBlock(b)) {
                         saveChanges();
                     }
@@ -139,22 +133,20 @@ public class ClientThread implements Runnable {
         }
     }
 
-    private void generateCoinbase(Block b) {
+    private void generateCoinbase(NewBlock b) {
         Transaction coinbase = new Transaction(null, user.getPublicKey(), 100);
         coinbase.setId(0);
         b.appendTransaction(coinbase);
     }
 
     private void transaction() throws IOException, ClassNotFoundException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-        List<String> usernames = users.stream().map(User::getUsername).collect(Collectors.toList());
-        objectOutputStream.writeObject(usernames);
         String selectedUser = (String) objectInputStream.readObject();
-        int ammount = objectInputStream.readInt();
-        if (calculateWallet() - ammount < 0) {
+        int amount = objectInputStream.readInt();
+        if (calculateWallet() - amount < 0) {
             objectOutputStream.writeByte(NO_ENOUGH_MONEY.data);
         } else {
             objectOutputStream.writeByte(TRANSACTION_SUCCESFULL.data);
-            writeTransaction(selectedUser, ammount);
+            writeTransaction(selectedUser, amount);
         }
         objectOutputStream.flush();
     }
@@ -175,12 +167,7 @@ public class ClientThread implements Runnable {
     }
 
     private void writeBlockchainData() throws IOException {
-        objectOutputStream.writeLong(bc.getSize() + 1);
-        objectOutputStream.flush();
-        objectOutputStream.writeObject(bc.getLastHash());
-        objectOutputStream.flush();
-        objectOutputStream.writeObject(bc.getNonce());
-        objectOutputStream.flush();
+        objectOutputStream.writeObject(bc.getBlockchainData());
     }
 
     private void login() throws IOException, GeneralSecurityException, ClassNotFoundException {
@@ -196,7 +183,6 @@ public class ClientThread implements Runnable {
             objectOutputStream.writeObject(Base64.getEncoder().encodeToString(encrypted));
             byte[] decrypted = objectInputStream.readNBytes(64);
             if (Arrays.equals(challange, decrypted)) {
-                System.out.println("ZALOGOWOWANO " + user.getUsername());
                 objectOutputStream.writeByte(LOGIN_SUCCESFULL.data);
                 objectOutputStream.flush();
                 userInterface();

@@ -1,8 +1,6 @@
 package client;
 
-import utils.Block;
-import utils.CryptoUtils;
-import utils.User;
+import utils.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -10,12 +8,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.*;
 import java.util.Base64;
-import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static utils.CryptoUtils.signString;
 import static utils.HEADERS.*;
@@ -28,143 +22,96 @@ public class Client {
     Scanner in;
     String path;
     int port;
+    boolean mining;
 
     public Client(int port, String path) {
         this.path = path;
         this.port = port;
     }
 
-    public final void start() {
-        in = new Scanner(System.in);
-        try {
-            client = new Socket("localhost", port);
-            objectOutputStream = new ObjectOutputStream(client.getOutputStream());
-            objectInputStream = new ObjectInputStream(client.getInputStream());
-            printLoginMenu();
-            switch (Integer.parseInt(in.nextLine())) {
-                case 1:
-                    objectOutputStream.writeByte(LOGIN_SELECTED.data);
-                    objectOutputStream.flush();
-                    loginUser();
-                    break;
-                case 2:
-                    objectOutputStream.writeByte(REGISTRATION_SELECTED.data);
-                    objectOutputStream.flush();
-                    registerUser();
-                    break;
-                default:
-                    System.out.println("Wrong option selected!");
+    public final void start() throws IOException {
+        client = new Socket("localhost", port);
+        objectOutputStream = new ObjectOutputStream(client.getOutputStream());
+        objectInputStream = new ObjectInputStream(client.getInputStream());
+        mining = false;
+        Thread minerMaster = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(!Thread.currentThread().isInterrupted()) {
+                    if (mining) {
+                        ExecutorService es = initExecutorService();
+                        try {
+                            Future<NewBlock> minedBlock = es.submit(new MinerCallable(startMining()));
+                            NewBlock mined = minedBlock.get();
+                            System.out.println("WYKOPANO BLOK");
+                            writeBlockData(mined);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        } catch (ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    else {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        });
+        minerMaster.start();
     }
 
-    private void loginUser() {
-        System.out.println("Enter username");
-        String username = in.nextLine();
-        try {
-            objectOutputStream.writeObject(username);
-            System.out.println("Enter password for private key");
-            String passphrase = in.nextLine();
-            PrivateKey privateKey = getPrivateKey(passphrase, username);
-            String challenge = (String) objectInputStream.readObject();
-            byte[] decrypted = CryptoUtils.decryptBytes(Base64.getDecoder().decode(challenge), privateKey);
-            objectOutputStream.write(decrypted);
-            objectOutputStream.flush();
-            byte x = objectInputStream.readByte();
-            if (x == LOGIN_SUCCESFULL.data) {
-                System.out.println("Welcome " + username + "!");
-                user = new User(username);
-                userPanel();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public boolean loginUser(String username, String passphrase) throws Exception {
+        objectOutputStream.writeByte(LOGIN_SELECTED.data);
+        objectOutputStream.flush();
+        objectOutputStream.writeObject(username);
+        PrivateKey privateKey = getPrivateKey(passphrase, username);
+        String challenge = (String) objectInputStream.readObject();
+        byte[] decrypted = CryptoUtils.decryptBytes(Base64.getDecoder().decode(challenge), privateKey);
+        objectOutputStream.write(decrypted);
+        objectOutputStream.flush();
+        byte x = objectInputStream.readByte();
+        if (x == LOGIN_SUCCESFULL.data) {
+            user = new User(username);
+            return true;
         }
+        return false;
     }
 
-    private PrivateKey getPrivateKey(String passphrase, String username) throws Exception {
+    public PrivateKey getPrivateKey(String passphrase, String username) throws Exception {
         return CryptoUtils.getPrivate(path + username + '/' + "privatekey.txt");
     }
 
-    private void registerUser() {
-        System.out.println("Enter username");
-        String username = in.nextLine();
-        try {
-            objectOutputStream.writeObject(username);
-            byte x = objectInputStream.readByte();
-            if (x != REGISTRATION_SUCCESFULL.data) {
-                System.out.println("Name already in database!\nPlease enter other nickname");
-                client.close();
-                return;
-            }
-            user = new User(username);
-            System.out.println("Enter passphrase for private key:");
-            PublicKey publicKey = CryptoUtils.keyGeneration(path, username, in.nextLine());
-            objectOutputStream.writeObject(publicKey);
-            System.out.println("Registration successful - keys generated in " + path + username);
-
-        } catch (IOException | NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new RuntimeException(e);
+    public boolean registerUser(String username, String passphrase) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
+        objectOutputStream.writeByte(REGISTRATION_SELECTED.data);
+        objectOutputStream.flush();
+        objectOutputStream.writeObject(username);
+        byte x = objectInputStream.readByte();
+        if (x != REGISTRATION_SUCCESFULL.data) {
+            client.close();
+            return false;
         }
+        user = new User(username);
+        PublicKey publicKey = CryptoUtils.keyGeneration(path, username, passphrase);
+        objectOutputStream.writeObject(publicKey);
+        return true;
+
     }
 
-    void userPanel() {
-        ExecutorService executorService = initExecutorService();
-        boolean mining = false;
-        BlockingQueue<Block> minerQueue = new ArrayBlockingQueue<>(1);
-        AtomicInteger nonce = new AtomicInteger();
-        AtomicLong id = new AtomicLong();
-        AtomicReference<String> prevHash = new AtomicReference<>();
-        printUserPanel(mining);
-        try {
-            while (!Thread.currentThread().isInterrupted()) {
-                if (mining) {
-                    objectOutputStream.writeObject("mining");
-                    getBlockchainData(nonce, id, prevHash);
-                    if (!minerQueue.isEmpty()) {
-                        Block b = minerQueue.take();
-                        String mined = "mined";
-                        writeBlockData(b, mined);
-                    }
-                }
-                if (System.in.available() > 0) {
-                    switch (in.nextLine()) {
-                        case "m":
-                            mining = !mining;
-                            if (mining) {
-                                startMining(minerQueue, nonce, id, prevHash, executorService);
-                            } else {
-                                executorService.shutdownNow();
-                                executorService = initExecutorService();
-                            }
-                            break;
-                        case "t":
-                            transaction();
-                        case "w":
-                            stanPortfela();
-                            break;
-                    }
-                    printUserPanel(mining);
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public BlockchainData getBlockchainData() throws IOException, ClassNotFoundException {
+        return (BlockchainData) objectInputStream.readObject();
     }
 
-    private void getBlockchainData(AtomicInteger nonce, AtomicLong id, AtomicReference<String> prevHash) throws IOException, ClassNotFoundException {
-        id.set(objectInputStream.readLong());
-        prevHash.set((String) objectInputStream.readObject());
-        nonce.set((int) objectInputStream.readObject());
-    }
-
-    private void writeBlockData(Block b, String mined) throws IOException {
-        objectOutputStream.writeObject(mined);
-        objectOutputStream.writeLong(b.getTimeStamp());
-        objectOutputStream.writeInt(b.getMagicNumber());
-        objectOutputStream.writeObject(user.getUsername());
+    public void writeBlockData(NewBlock b) throws IOException {
+        objectOutputStream.writeObject("mined");
+        objectOutputStream.writeObject(b);
     }
 
     private ExecutorService initExecutorService() {
@@ -176,57 +123,34 @@ public class Client {
                 });
     }
 
-    private void printUserPanel(boolean mining) {
-        System.out.println("---USER PANEL---");
-        if (!mining)
-            System.out.println("m - Start mining");
-        else
-            System.out.println("m - Stop mining");
-        System.out.println("t - Make transaction");
-        System.out.println("w - Check wallet");
-    }
-
-    private void startMining(BlockingQueue<Block> minerQueue, AtomicInteger nonce, AtomicLong id, AtomicReference<String> prevHash, ExecutorService executorService) throws IOException, ClassNotFoundException {
+    private BlockchainData startMining() throws IOException, ClassNotFoundException {
         objectOutputStream.writeObject("mining");
-        id.set(objectInputStream.readLong());
-        prevHash.set((String) objectInputStream.readObject());
-        nonce.set((int) objectInputStream.readObject());
-        executorService.submit(new Miner(id, nonce, prevHash, minerQueue));
-        executorService.submit(new Miner(id, nonce, prevHash, minerQueue));
+        BlockchainData data = getBlockchainData();
+        return data;
     }
 
-    private void transaction() throws Exception {
+    public boolean transaction(String selected, int amount, String passphrase) throws Exception {
         objectOutputStream.writeObject("initTransaction");
-        List<String> users;
-        users = (List<String>) objectInputStream.readObject();
-        System.out.println("Select user");
-        users.forEach(System.out::println);
-        String selected = in.nextLine();
         objectOutputStream.writeObject(selected);
-        System.out.println("Amount to transfer to " + selected);
-        int amount = Integer.parseInt(in.nextLine());
         objectOutputStream.writeInt(amount);
         objectOutputStream.flush();
         byte x = objectInputStream.readByte();
         if (x == TRANSACTION_SUCCESFULL.data) {
-            System.out.println("Password for private key");
-            String passphrase = in.nextLine();
             PrivateKey pk = getPrivateKey(passphrase, user.getUsername());
             String toSign = (String) objectInputStream.readObject();
             String signature = signString(pk, toSign);
             objectOutputStream.writeObject(signature);
-
+            return true;
         }
+        return false;
     }
 
-
-    private void stanPortfela() throws IOException {
+    public int checkWallet() throws IOException {
         objectOutputStream.writeObject("checkWallet");
-        System.out.println(objectInputStream.readInt());
+        return (objectInputStream.readInt());
     }
 
-    private void printLoginMenu() {
-        System.out.println("---MENU---\n" +
-                "1.Log in\n2.Register\n");
+    public void switchMining() {
+        mining = !mining;
     }
 }

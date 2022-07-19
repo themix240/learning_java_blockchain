@@ -1,6 +1,6 @@
 package node;
 
-import utils.Block;
+import utils.MinedBlock;
 
 import java.io.*;
 import java.util.Collections;
@@ -8,34 +8,22 @@ import java.util.List;
 
 public class BlockchainTxtFileManager implements BlockchainFileManager {
     String PATH;
-    List<Block> blocks;
+    List<MinedBlock> minedBlocks;
 
-    public BlockchainTxtFileManager(String PATH, List<Block> blocks) {
+    public BlockchainTxtFileManager(String PATH, List<MinedBlock> minedBlocks) {
         this.PATH = PATH;
-        this.blocks = blocks;
+        this.minedBlocks = minedBlocks;
     }
 
-    public void loadBlockchain() {
+    public List<MinedBlock> loadBlockchain() throws IOException, ClassNotFoundException {
         ObjectInputStream ois = null;
         //FIXME ClassNotFound exception handle
-        try {
             File f = new File(PATH);
-            if (!f.isFile() || !f.canRead()) return;
+            if (!f.isFile() || !f.canRead()) return minedBlocks;
             FileInputStream fis = new FileInputStream(PATH);
             ois = new ObjectInputStream(fis);
-            List<Block> read = (List<Block>) ois.readObject();
-            blocks = Collections.synchronizedList(read);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (ois != null) {
-                try {
-                    ois.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
+            List<MinedBlock> read = (List<MinedBlock>) ois.readObject();
+            return (Collections.synchronizedList(read));
     }
 
     public void saveBlockchain() {
@@ -44,7 +32,7 @@ public class BlockchainTxtFileManager implements BlockchainFileManager {
         try {
             fout = new FileOutputStream(PATH);
             oos = new ObjectOutputStream(fout);
-            oos.writeObject(blocks);
+            oos.writeObject(minedBlocks);
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
