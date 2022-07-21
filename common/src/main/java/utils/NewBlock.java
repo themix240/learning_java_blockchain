@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class NewBlock implements Serializable {
-    List<Transaction> transactions;
+    public List<Transaction> transactions;
     String hashOfPrev;
     public int magicNumber;
 

@@ -10,6 +10,7 @@ public class ClientUI {
     Scanner input;
     Client client;
 
+
     public ClientUI() throws IOException {
         int port;
         String path;
@@ -35,7 +36,7 @@ public class ClientUI {
                 "3. Make transaction\n" +
                 "4. Quit");
         int option = Integer.parseInt(input.nextLine());
-        while (option != 4) {
+        while (true) {
             switch (option) {
                 case 1:
                     client.switchMining();
@@ -55,6 +56,9 @@ public class ClientUI {
                     else
                         System.out.println("Transaction unsuccessful");
                     break;
+                case 4:
+                    client.quit();
+                    return;
             }
             System.out.println("1. Switch mining\n" +
                     "2. Check Wallet\n" +
@@ -75,7 +79,6 @@ public class ClientUI {
 
     public void start() throws Exception {
         printLoginMenu();
-        client.start();
         int option = Integer.parseInt(input.nextLine());
         switch (option) {
             case 1:

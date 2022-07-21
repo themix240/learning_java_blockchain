@@ -2,6 +2,7 @@ package utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,5 +56,9 @@ public final class MinedBlock implements Serializable {
         this.magicNumber = block.magicNumber;
         this.transactions = Collections.unmodifiableList(block.transactions);
         this.hash = applyHash();
+    }
+
+    public String getOwner() {
+        return transactions.size() > 0 ? Base64.getEncoder().encodeToString(transactions.get(0).getReciver().getEncoded()) : "null";
     }
 }

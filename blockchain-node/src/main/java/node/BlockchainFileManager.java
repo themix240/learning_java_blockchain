@@ -6,6 +6,6 @@ import java.io.IOException;
 import java.util.List;
 
 public interface BlockchainFileManager {
-    void saveBlockchain();
+    void saveBlockchain(List<MinedBlock> minedBlocks);
     List<MinedBlock> loadBlockchain() throws ClassNotFoundException, IOException;
 }

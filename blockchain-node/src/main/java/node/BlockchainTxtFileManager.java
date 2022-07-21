@@ -8,25 +8,24 @@ import java.util.List;
 
 public class BlockchainTxtFileManager implements BlockchainFileManager {
     String PATH;
-    List<MinedBlock> minedBlocks;
 
-    public BlockchainTxtFileManager(String PATH, List<MinedBlock> minedBlocks) {
+
+    public BlockchainTxtFileManager(String PATH) {
         this.PATH = PATH;
-        this.minedBlocks = minedBlocks;
     }
 
     public List<MinedBlock> loadBlockchain() throws IOException, ClassNotFoundException {
         ObjectInputStream ois = null;
         //FIXME ClassNotFound exception handle
             File f = new File(PATH);
-            if (!f.isFile() || !f.canRead()) return minedBlocks;
+            if (!f.isFile() || !f.canRead()) return Collections.emptyList();
             FileInputStream fis = new FileInputStream(PATH);
             ois = new ObjectInputStream(fis);
             List<MinedBlock> read = (List<MinedBlock>) ois.readObject();
             return (Collections.synchronizedList(read));
     }
 
-    public void saveBlockchain() {
+    public void saveBlockchain(List<MinedBlock> minedBlocks) {
         ObjectOutputStream oos = null;
         FileOutputStream fout;
         try {

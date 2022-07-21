@@ -66,8 +66,8 @@ public class ClientThread implements Runnable {
 
     private void rejestracja() {
         try {
-            Object recived = objectInputStream.readObject();
-            String username = (String) recived;
+            Object received = objectInputStream.readObject();
+            String username = (String) received;
             //TODO change usernames to publickeys
             user = findUser(username);
             if (user == null) {
@@ -115,11 +115,9 @@ public class ClientThread implements Runnable {
                     writeBlockchainData();
                     break;
                 case "mined":
-                   NewBlock b = (NewBlock) objectInputStream.readObject();
-                    //generateCoinbase(b);
-                    if (bc.acceptBlock(b)) {
-                        saveChanges();
-                    }
+                    NewBlock b = (NewBlock) objectInputStream.readObject();
+                    bc.acceptBlock(b);
+
                     break;
                 case "checkWallet":
                     int wallet = calculateWallet();
@@ -133,11 +131,6 @@ public class ClientThread implements Runnable {
         }
     }
 
-    private void generateCoinbase(NewBlock b) {
-        Transaction coinbase = new Transaction(null, user.getPublicKey(), 100);
-        coinbase.setId(0);
-        b.appendTransaction(coinbase);
-    }
 
     private void transaction() throws IOException, ClassNotFoundException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         String selectedUser = (String) objectInputStream.readObject();

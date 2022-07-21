@@ -24,8 +24,8 @@ public class Blockchain implements Serializable {
     private BlockchainFileManager blockchainFileManager;
     private final List<Transaction> transactions = Collections.synchronizedList(new ArrayList<>());
 
-    private List<MinedBlock> minedBlocks = Collections.synchronizedList(new ArrayList<>());
-    private final int nonce;
+    private  List<MinedBlock> minedBlocks = Collections.synchronizedList(new ArrayList<>());
+    private int nonce;
     BlockingQueue<MinedBlock> sendNewMinedBlock = new ArrayBlockingQueue<>(1);
 
     private Blockchain() throws IOException, ClassNotFoundException {
@@ -35,13 +35,13 @@ public class Blockchain implements Serializable {
             String PATH = properties.getProperty("blockchain_path");//path where blockchain is stored - required in jetbrains project
             String fileManagerType = properties.getProperty("blockchain_file_type");
             if (fileManagerType.equals("txt"))
-                blockchainFileManager = new BlockchainTxtFileManager(PATH, minedBlocks);
+                blockchainFileManager = new BlockchainTxtFileManager(PATH);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        minedBlocks = blockchainFileManager.loadBlockchain();
-        nonce = 2;
+        minedBlocks.addAll(blockchainFileManager.loadBlockchain());
+        nonce = 0;
     }
 
     public static Blockchain getInstance() throws IOException, ClassNotFoundException {
@@ -57,7 +57,7 @@ public class Blockchain implements Serializable {
         for (int i = 0; i < min(15, minedBlocks.size()); i++) {
             MinedBlock b = minedBlocks.get(i);
             sb.add("Block:");
-            sb.add("Created by miner " + b.getId()); //change to username based on coinbase transaction
+            sb.add("Created by " + b.getOwner()); //change to username based on coinbase transaction
             sb.add("Miner gets 10 VC");
             sb.add("Id: " + b.getId());
             sb.add("Timestamp:" + b.getTimeStamp());
@@ -86,11 +86,11 @@ public class Blockchain implements Serializable {
     }
 
     synchronized boolean acceptBlock(NewBlock b) {
-        MinedBlock mb = new MinedBlock(b, getSize()+1);
+        MinedBlock mb = new MinedBlock(b, getSize() + 1);
         if (checkBlock(minedBlocks, mb, nonce)) {
             minedBlocks.add(mb);
-            sendNewMinedBlock.add(mb);
-            blockchainFileManager.saveBlockchain();
+            blockchainFileManager.saveBlockchain(minedBlocks);
+            updateNonce();
             return true;
         }
         return false;
@@ -106,7 +106,19 @@ public class Blockchain implements Serializable {
             transactions.add(t);
         }
     }
+
     public BlockchainData getBlockchainData() {
         return new BlockchainData(nonce, transactions, minedBlocks.size(), getLastHash());
     }
+
+    private void updateNonce() {
+        if (minedBlocks.size() < 2) nonce += 1;
+        else {
+            if(minedBlocks.get(minedBlocks.size()-2).getTimeStamp() - minedBlocks.get(minedBlocks.size()-1).getTimeStamp() < 2000) nonce+=1;
+            else if(minedBlocks.get(minedBlocks.size()-2).getTimeStamp() - minedBlocks.get(minedBlocks.size()-1).getTimeStamp() > 5000) nonce -=1;
+        }
+        if(nonce < 0) nonce = 0;
+
+    }
+
 }
