@@ -30,6 +30,9 @@ public class ConnectionHandler implements Runnable {
 
     private BlockingQueue<MinedBlock> blocksToSend;
     private List<BlockingQueue<MinedBlock>> clientBlocksToSend;
+    private Thread minedBlocksRefresher;
+    private Timer timer;
+    private Thread p2pHandler;
 
     public ConnectionHandler(int port, int p2pPort, Blockchain bc, String path, String ips_path) {
         try {
@@ -46,10 +49,28 @@ public class ConnectionHandler implements Runnable {
         }
 
     }
+    public void shutdown() {
+
+        executorService.shutdownNow();
+        try {
+            server.close();
+            p2pHandler.interrupt();
+            minedBlocksRefresher.interrupt();
+            p2pHandler.join();
+            minedBlocksRefresher.join();
+            timer.cancel();
+            serverSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 
     @Override
     public void run() {
-        Thread minedBlocksRefresher = new Thread(new Runnable() {
+         minedBlocksRefresher = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (!Thread.currentThread().isInterrupted()) {
@@ -63,12 +84,13 @@ public class ConnectionHandler implements Runnable {
                             }
                         });
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        shutdown();
+                        return;
                     }
                 }
             }
         });
-        Thread p2pHandler = new Thread(new Runnable() {
+         p2pHandler = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (!Thread.currentThread().isInterrupted()) {
@@ -76,12 +98,12 @@ public class ConnectionHandler implements Runnable {
                         Socket p2p = serverSocket.accept();
                         executorService.submit(new NodeServerThread(bc, p2p));
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        return;
                     }
                 }
             }
         });
-        Timer timer = new Timer();
+        timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -89,7 +111,8 @@ public class ConnectionHandler implements Runnable {
                 initConnectionsToNodes();
             }
         }, 10000, 100000);
-
+        p2pHandler.setDaemon(true);
+        minedBlocksRefresher.setDaemon(true);
         p2pHandler.start();
         minedBlocksRefresher.start();
         while (!Thread.interrupted()) {
@@ -98,7 +121,7 @@ public class ConnectionHandler implements Runnable {
                 loadUsers();
                 executorService.submit(new ClientThread(socket, users, bc, path));
             } catch (IOException ex) {
-                //System.out.prinddtln("IOException" + ex);
+                return;
             }
         }
     }

@@ -96,6 +96,7 @@ public class ClientThread implements Runnable {
         File f = new File(path);
         try {
             if (!f.exists()) {
+                f.getParentFile().mkdirs();
                 f.createNewFile();
             }
             FileOutputStream fileOutputStream = new FileOutputStream(f);

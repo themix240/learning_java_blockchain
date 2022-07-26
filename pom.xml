@@ -12,6 +12,7 @@
         <module>blockchain-node</module>
         <module>blockchain-client</module>
         <module>common</module>
+        <module>integration-test</module>
     </modules>
 
     <properties>

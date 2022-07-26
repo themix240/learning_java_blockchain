@@ -1,15 +1,20 @@
 package client;
 
-import utils.*;
+import utils.BlockchainData;
+import utils.CryptoUtils;
+import utils.NewBlock;
+import utils.User;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.security.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Scanner;
-import java.util.concurrent.*;
 
 import static utils.CryptoUtils.getPublic;
 import static utils.CryptoUtils.signString;
