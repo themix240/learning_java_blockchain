@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface BlockchainFileManager {
     void saveBlockchain(List<MinedBlock> minedBlocks);
-    List<MinedBlock> loadBlockchain() throws ClassNotFoundException, IOException;
+    List<MinedBlock> loadBlockchain();
 }

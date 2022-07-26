@@ -1,5 +1,6 @@
 package node;
 
+import utils.MinedBlock;
 import utils.User;
 
 import java.io.*;
@@ -10,13 +11,15 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 
 public class ConnectionHandler implements Runnable {
-    private final ServerSocket server,serverSocket;
+    private final ServerSocket server, serverSocket;
     private List<User> users = new ArrayList<>();
     private final ExecutorService executorService;
 
@@ -24,15 +27,20 @@ public class ConnectionHandler implements Runnable {
     private final String path;
     private final String ips_path;
     private HashMap<InetSocketAddress, Boolean> connectedNodes = new HashMap<>();
-    public ConnectionHandler(int port, int p2pPort, Blockchain bc, String path,String ips_path) {
+
+    private BlockingQueue<MinedBlock> blocksToSend;
+    private List<BlockingQueue<MinedBlock>> clientBlocksToSend;
+
+    public ConnectionHandler(int port, int p2pPort, Blockchain bc, String path, String ips_path) {
         try {
             this.bc = bc;
             executorService = Executors.newFixedThreadPool(8);
-            server = new ServerSocket(1337);
-            serverSocket = new ServerSocket(6000);
+            server = new ServerSocket(port);
+            serverSocket = new ServerSocket(p2pPort);
             server.setSoTimeout(1000);
             this.path = path;
             this.ips_path = ips_path;
+            blocksToSend = bc.getBlockToSend();
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
@@ -41,13 +49,32 @@ public class ConnectionHandler implements Runnable {
 
     @Override
     public void run() {
-        Thread p2pHandler =new Thread(new Runnable() {
+        Thread minedBlocksRefresher = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(!Thread.currentThread().isInterrupted()){
+                while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        Socket p2p= serverSocket.accept();
-                        executorService.submit(new NodeServerThread(bc,p2p));
+                        MinedBlock block = blocksToSend.take();
+                        clientBlocksToSend.stream().forEach(bq -> {
+                            try {
+                                bq.put(block);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
+        Thread p2pHandler = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
+                        Socket p2p = serverSocket.accept();
+                        executorService.submit(new NodeServerThread(bc, p2p));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -59,11 +86,12 @@ public class ConnectionHandler implements Runnable {
             @Override
             public void run() {
                 System.out.println("Trying to connect to other nodes");
-                    initConnectionsToNodes();
+                initConnectionsToNodes();
             }
-        },10000,100000);
+        }, 10000, 100000);
 
         p2pHandler.start();
+        minedBlocksRefresher.start();
         while (!Thread.interrupted()) {
             try {
                 Socket socket = server.accept();
@@ -76,20 +104,22 @@ public class ConnectionHandler implements Runnable {
     }
 
     private void initConnectionsToNodes() { //Trying to implement p2p networking
-        try(Stream<String> input = Files.lines(Path.of(ips_path))){
+        try (Stream<String> input = Files.lines(Path.of(ips_path))) {
             input.map(s -> s.split(":"))
-                    .map(split -> new InetSocketAddress(split[0],Integer.parseInt(split[1])))
+                    .map(split -> new InetSocketAddress(split[0], Integer.parseInt(split[1])))
                     .forEach(Adress -> {
                         try {
-                            if(connectedNodes.get(Adress)!=null) {
+                            if (connectedNodes.get(Adress) != null) {
                                 System.out.println("Already connected!");
                                 return;
                             }
-                            Socket clientSocket = new Socket(Adress.getAddress(),6001 );
-                            connectedNodes.put(Adress,true);
-                            executorService.submit(new NodeClientThread(bc, clientSocket));
+                            Socket clientSocket = new Socket(Adress.getAddress(), Adress.getPort());
+                            connectedNodes.put(Adress, true);
+                            BlockingQueue<MinedBlock> x = new ArrayBlockingQueue<MinedBlock>(1);
+                            clientBlocksToSend.add(x);
+                            executorService.submit(new NodeClientThread(bc, clientSocket, x));
                         } catch (ConnectException e) {
-                           System.out.println("Connection refused at "+Adress.getAddress()+":"+Adress.getPort());
+                            System.out.println("Connection refused at " + Adress.getAddress() + ":" + Adress.getPort());
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -98,6 +128,7 @@ public class ConnectionHandler implements Runnable {
             throw new RuntimeException(e);
         }
     }
+
     private void loadUsers() {
         File f = new File(path);
         FileInputStream fileInputStream;

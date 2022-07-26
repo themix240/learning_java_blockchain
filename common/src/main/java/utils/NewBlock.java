@@ -1,6 +1,5 @@
 package utils;
 
-import javax.print.DocFlavor;
 import java.io.Serializable;
 import java.util.List;
 

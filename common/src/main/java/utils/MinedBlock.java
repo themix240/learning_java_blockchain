@@ -1,10 +1,10 @@
 package utils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public final class MinedBlock implements Serializable {
     private static final long serialVersionUID = 3L;
@@ -39,6 +39,19 @@ public final class MinedBlock implements Serializable {
 
     public int getMagicNumber() {
         return magicNumber;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MinedBlock that = (MinedBlock) o;
+        return getTimeStamp() == that.getTimeStamp() && getId() == that.getId() && getMagicNumber() == that.getMagicNumber() && getHash().equals(that.getHash()) && Objects.equals(getPrevHash(), that.getPrevHash()) && Objects.equals(getTransactions(), that.getTransactions());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTimeStamp(), getId(), getHash(), getPrevHash(), getMagicNumber(), getTransactions());
     }
 
     public List<Transaction> getTransactions() {

@@ -11,7 +11,20 @@ public class NodeServerThread implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Server started!");
+        System.out.println("Server started at " + serverSocket.getInetAddress() +":"+serverSocket.getPort());
+        try {
+            while(!Thread.currentThread().isInterrupted()) {
+            Blockchain newBlockchain = (Blockchain) objectInputStream.readObject();
+            if(BlockchainUtils.validate(newBlockchain.getBlocks()) && newBlockchain.getSize() > bc.getSize()) {
+                bc.replaceBlockchain(newBlockchain);
+                System.out.println("Blockchain replaced!");
+            }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public NodeServerThread(Blockchain bc, Socket serverSocket) {

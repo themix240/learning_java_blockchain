@@ -8,28 +8,40 @@ import utils.Transaction;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import static java.lang.Math.min;
 import static node.BlockchainUtils.checkBlock;
 import static node.BlockchainUtils.verifyTransaction;
-import static java.lang.Math.min;
 
 public class Blockchain implements Serializable {
     private static Blockchain instance;
     private BlockchainFileManager blockchainFileManager;
     private final List<Transaction> transactions = Collections.synchronizedList(new ArrayList<>());
 
-    private  List<MinedBlock> minedBlocks = Collections.synchronizedList(new ArrayList<>());
+    private List<MinedBlock> minedBlocks = Collections.synchronizedList(new ArrayList<>());
     private int nonce;
-    BlockingQueue<MinedBlock> sendNewMinedBlock = new ArrayBlockingQueue<>(1);
+
+
+    BlockingQueue<MinedBlock> blockToSend = new ArrayBlockingQueue<>(1);
+
+    public Blockchain(BlockchainFileManager blockchainFileManager, List<MinedBlock> minedBlocks, int nonce) {
+        this.blockchainFileManager = blockchainFileManager;
+        this.minedBlocks = minedBlocks;
+        this.nonce = nonce;
+        instance = this;
+    }
 
     private Blockchain() throws IOException, ClassNotFoundException {
-        try (InputStream inputStream = new FileInputStream("blockchain-node/config.properties")) {
+        try (InputStream inputStream = new FileInputStream("config.properties")) {
             Properties properties = new Properties();
             properties.load(inputStream);
             String PATH = properties.getProperty("blockchain_path");//path where blockchain is stored - required in jetbrains project
@@ -85,10 +97,13 @@ public class Blockchain implements Serializable {
         return minedBlocks.size() > 0 ? minedBlocks.get(minedBlocks.size() - 1).getHash() : "0";
     }
 
-    synchronized boolean acceptBlock(NewBlock b) {
+    synchronized boolean acceptBlock(NewBlock b) throws InterruptedException {
         MinedBlock mb = new MinedBlock(b, getSize() + 1);
         if (checkBlock(minedBlocks, mb, nonce)) {
             minedBlocks.add(mb);
+            if (blockToSend.isEmpty()) {
+                blockToSend.put(mb);
+            }
             blockchainFileManager.saveBlockchain(minedBlocks);
             updateNonce();
             return true;
@@ -114,11 +129,23 @@ public class Blockchain implements Serializable {
     private void updateNonce() {
         if (minedBlocks.size() < 2) nonce += 1;
         else {
-            if(minedBlocks.get(minedBlocks.size()-2).getTimeStamp() - minedBlocks.get(minedBlocks.size()-1).getTimeStamp() < 2000) nonce+=1;
-            else if(minedBlocks.get(minedBlocks.size()-2).getTimeStamp() - minedBlocks.get(minedBlocks.size()-1).getTimeStamp() > 5000) nonce -=1;
+            if (minedBlocks.get(minedBlocks.size() - 2).getTimeStamp() - minedBlocks.get(minedBlocks.size() - 1).getTimeStamp() < 2000)
+                nonce += 1;
+            else if (minedBlocks.get(minedBlocks.size() - 2).getTimeStamp() - minedBlocks.get(minedBlocks.size() - 1).getTimeStamp() > 5000)
+                nonce -= 1;
         }
-        if(nonce < 0) nonce = 0;
+        if (nonce < 0) nonce = 0;
 
+    }
+
+    public synchronized void replaceBlockchain(Blockchain newBlockchain) {
+        instance = newBlockchain;
+        minedBlocks = newBlockchain.getBlocks();
+        blockchainFileManager.saveBlockchain(minedBlocks);
+    }
+
+    public BlockingQueue<MinedBlock> getBlockToSend() {
+        return blockToSend;
     }
 
 }

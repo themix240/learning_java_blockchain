@@ -1,0 +1,65 @@
+package node;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import utils.MinedBlock;
+import utils.NewBlock;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class BlockchainTxtFileManagerTest {
+    @TempDir
+    private static Path tempDir;
+
+    @BeforeEach
+    void checkTempDir() {
+        assertTrue(Files.isDirectory(tempDir));
+    }
+
+    @Test
+    @Order(1)
+    void saveBlockchainTest() throws IOException, ClassNotFoundException {
+        assertTrue(Files.exists(tempDir));
+        File file = new File(String.valueOf(tempDir), "blockchain.txt");
+        List<MinedBlock> minedBlocks = new ArrayList<>();
+        BlockchainFileManager blockchainFileManager = new BlockchainTxtFileManager(file.toString());
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 0));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 1));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 2));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 3));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 4));
+        blockchainFileManager.saveBlockchain(minedBlocks);
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+        List<MinedBlock> inputFromFile = (List<MinedBlock>) ois.readObject();
+        assertTrue(file.exists());
+        assertIterableEquals(minedBlocks, inputFromFile);
+    }
+
+    @Test
+    @Order(2)
+    void loadBlockchainTest() {
+        assertTrue(Files.exists(tempDir));
+        File file = new File(String.valueOf(tempDir), "blockchain.txt");
+        List<MinedBlock> minedBlocks = new ArrayList<>();
+        BlockchainFileManager blockchainFileManager = new BlockchainTxtFileManager(file.toString());
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 0));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 1));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 2));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 3));
+        minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 4));
+        blockchainFileManager.saveBlockchain(minedBlocks);
+        List<MinedBlock> inputFromFile = blockchainFileManager.loadBlockchain();
+        assertTrue(file.exists());
+        assertIterableEquals(minedBlocks, inputFromFile);
+    }
+
+}

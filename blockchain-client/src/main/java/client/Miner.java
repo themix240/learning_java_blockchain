@@ -1,13 +1,12 @@
 package client;
 
-import utils.*;
+import utils.BlockchainData;
+import utils.NewBlock;
+import utils.Transaction;
+import utils.User;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Miner {
     final BlockchainData data;

@@ -1,6 +1,8 @@
 package node;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import static node.BlockchainUtils.validate;
@@ -13,7 +15,7 @@ public class Main {
         String path;
         String userDBPath = null;
         //Create properties file in project dir
-        try  (InputStream inputStream = new FileInputStream("blockchain-node/config.properties")) {
+        try  (InputStream inputStream = new FileInputStream("config.properties")) {
             Properties properties = new Properties();
             properties.load(inputStream);
             port = Integer.parseInt(properties.getProperty("client_port")); //port on which node is listening to client connections

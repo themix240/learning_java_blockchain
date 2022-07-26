@@ -1,6 +1,9 @@
 package node;
 
-import utils.*;
+import utils.CryptoUtils;
+import utils.NewBlock;
+import utils.Transaction;
+import utils.User;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -11,7 +14,6 @@ import java.security.*;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static node.BlockchainUtils.getWallet;
 import static utils.HEADERS.*;
@@ -52,7 +54,7 @@ public class ClientThread implements Runnable {
                     break;
 
             }
-        } catch (IOException | ClassNotFoundException | GeneralSecurityException e) {
+        } catch (IOException | ClassNotFoundException | GeneralSecurityException | InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
             try {
@@ -106,7 +108,7 @@ public class ClientThread implements Runnable {
         }
     }
 
-    private void userInterface() throws IOException, ClassNotFoundException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+    private void userInterface() throws IOException, ClassNotFoundException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException {
         String options;
         while (!Thread.currentThread().isInterrupted()) {
             options = (String) objectInputStream.readObject();
@@ -163,7 +165,7 @@ public class ClientThread implements Runnable {
         objectOutputStream.writeObject(bc.getBlockchainData());
     }
 
-    private void login() throws IOException, GeneralSecurityException, ClassNotFoundException {
+    private void login() throws IOException, GeneralSecurityException, ClassNotFoundException, InterruptedException {
         Object recived = objectInputStream.readObject();
         String username = (String) recived;
         user = findUser(username);
