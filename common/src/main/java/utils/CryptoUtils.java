@@ -7,6 +7,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -27,7 +28,7 @@ public class CryptoUtils {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return kf.generatePublic(spec);
     }
-    public static byte[] decryptBytes(byte[] input, PrivateKey key) throws GeneralSecurityException {
+    public static byte[] decryptBytes(byte[] input, Key key) throws GeneralSecurityException {
         Cipher decryptionCipher = Cipher.getInstance("RSA");
         decryptionCipher.init(Cipher.DECRYPT_MODE, key);
         return decryptionCipher.doFinal(input);
@@ -41,14 +42,13 @@ public class CryptoUtils {
     public static PublicKey keyGeneration(String path, String username, String passphrase) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
         GenerateKeys generateKeys = new GenerateKeys(1024);
         generateKeys.createKeys();
-        generateKeys.writeToFile(path + username + '/' + "pubKey.txt", generateKeys.getPublicKey().getEncoded());
-        generateKeys.writeToFile(path + username + '/' + "privatekey.txt", generateKeys.getPrivateKey().getEncoded());
+        generateKeys.writeToFile(String.valueOf(Path.of(path,username,"publicKey.txt")), generateKeys.getPublicKey().getEncoded());
+        generateKeys.writeToFile(String.valueOf(Path.of(path,username,"privateKey.txt")), generateKeys.getPrivateKey().getEncoded());
         return generateKeys.getPublicKey();
     }
     public static String signString(PrivateKey pk, String toSign) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, pk);
-        String signature = Base64.getEncoder().encodeToString(cipher.doFinal(toSign.getBytes()));
-        return signature;
+        return Base64.getEncoder().encodeToString(cipher.doFinal(toSign.getBytes()));
     }
 }
