@@ -3,6 +3,8 @@ package node;
 import utils.MinedBlock;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,9 +32,18 @@ public class BlockchainTxtFileManager implements BlockchainFileManager, Serializ
         }
     }
 
-    public void saveBlockchain(List<MinedBlock> minedBlocks) {
+    public void saveBlockchain(List<MinedBlock> minedBlocks)  {
         ObjectOutputStream oos = null;
         FileOutputStream fout;
+        if(!Files.exists(Path.of(PATH))){
+            File f = new File(PATH);
+            f.getParentFile().mkdirs();
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         try {
             fout = new FileOutputStream(PATH);
             oos = new ObjectOutputStream(fout);

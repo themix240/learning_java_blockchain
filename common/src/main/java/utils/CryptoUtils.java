@@ -15,7 +15,7 @@ import java.util.Base64;
 
 public class CryptoUtils {
     public static PrivateKey getPrivate(String filename) throws Exception {
-        byte[] keyBytes = Files.readAllBytes(new File(filename).toPath());
+        byte[] keyBytes = Files.readAllBytes(Path.of(filename));
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return kf.generatePrivate(spec);

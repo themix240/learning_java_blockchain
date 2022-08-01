@@ -31,7 +31,7 @@ public class Blockchain implements Serializable {
     private int nonce;
 
 
-    BlockingQueue<MinedBlock> blockToSend = new ArrayBlockingQueue<>(1);
+    public BlockingQueue<MinedBlock> blockToSend = new ArrayBlockingQueue<>(1);
 
     public Blockchain(BlockchainFileManager blockchainFileManager, List<MinedBlock> minedBlocks, int nonce) {
         this.blockchainFileManager = blockchainFileManager;
@@ -143,9 +143,4 @@ public class Blockchain implements Serializable {
         minedBlocks = newBlockchain.getBlocks();
         blockchainFileManager.saveBlockchain(minedBlocks);
     }
-
-    public BlockingQueue<MinedBlock> getBlockToSend() {
-        return blockToSend;
-    }
-
 }

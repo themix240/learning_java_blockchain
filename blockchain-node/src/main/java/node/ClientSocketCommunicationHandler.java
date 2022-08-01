@@ -1,9 +1,6 @@
 package node;
 
-import utils.HEADERS;
-import utils.MinedBlock;
-import utils.NewBlock;
-import utils.User;
+import utils.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 
@@ -131,8 +129,9 @@ public class ClientSocketCommunicationHandler implements Runnable {
         Random random = new Random();
         byte[] challenge = new byte[64];
         random.nextBytes(challenge);
-        objectOutputStream.write(challenge);
-        objectOutputStream.flush();
+
+        byte[] encrypted = CryptoUtils.encryptBytes(challenge, client.findUser(username).getPublicKey() );
+        objectOutputStream.writeObject(Base64.getEncoder().encodeToString(encrypted));
         byte[] decrypted = objectInputStream.readNBytes(64);
         success = client.login(username, challenge, decrypted);
         if (success) {

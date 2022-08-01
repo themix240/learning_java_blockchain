@@ -57,7 +57,7 @@ public class Client {
             synchronized (objectInputStream) {
                 byte x = objectInputStream.readByte();
                 if (x == LOGIN_SUCCESFULL.data) {
-                    user = new User(username, getPublic(path+username+'/'+"pubKey.txt"));
+                    user = new User(username, getPublic(path+'/'+username+'/'+"publicKey.txt"));
                     return true;
                 }
             }
@@ -66,7 +66,7 @@ public class Client {
     }
 
     public PrivateKey getPrivateKey(String passphrase, String username) throws Exception {
-        return CryptoUtils.getPrivate(path + username + '/' + "privatekey.txt");
+        return CryptoUtils.getPrivate(path+'/'+username+"/privateKey.txt" );
     }
 
     public boolean registerUser(String username, String passphrase) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {

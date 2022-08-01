@@ -28,7 +28,7 @@ public class ConnectionHandler implements Runnable {
     private final String ips_path;
     private HashMap<InetSocketAddress, Boolean> connectedNodes = new HashMap<>();
 
-    private BlockingQueue<MinedBlock> blocksToSend;
+    private final BlockingQueue<MinedBlock> blocksToSend;
     private List<BlockingQueue<MinedBlock>> clientBlocksToSend;
     private Thread minedBlocksRefresher;
     private Timer timer;
@@ -43,7 +43,8 @@ public class ConnectionHandler implements Runnable {
             server.setSoTimeout(1000);
             this.path = path;
             this.ips_path = ips_path;
-            blocksToSend = bc.getBlockToSend();
+            blocksToSend = bc.blockToSend;
+            clientBlocksToSend = new ArrayList<>();
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
@@ -76,7 +77,7 @@ public class ConnectionHandler implements Runnable {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
                         MinedBlock block = blocksToSend.take();
-                        clientBlocksToSend.stream().forEach(bq -> {
+                        clientBlocksToSend.forEach(bq -> {
                             try {
                                 bq.put(block);
                             } catch (InterruptedException e) {
