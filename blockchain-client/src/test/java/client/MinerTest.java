@@ -32,6 +32,7 @@ class MinerTest {
                 "f6f305124f07e73fc90ae24bd50502f81e908903f68ffc0d6b709dadaae6e63f");
         try {
             GenerateKeys generateKeys = new GenerateKeys(1024);
+            generateKeys.createKeys();
             publicKey = generateKeys.getPublicKey();
             miner = new Miner(data, new User("testUser", publicKey));
         } catch (NoSuchAlgorithmException e) {

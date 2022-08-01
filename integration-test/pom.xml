@@ -27,7 +27,7 @@
         <groupId>com.griddynamics.mmorozowski.course.java</groupId>
         <artifactId>blockchain</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <scope>tests</scope>
+        <scope>test</scope>
     </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

@@ -119,7 +119,7 @@ public class ConnectionHandler implements Runnable {
             try {
                 Socket socket = server.accept();
                 loadUsers();
-                executorService.submit(new ClientThread(socket, users, bc, path));
+                executorService.submit(new ClientSocketCommunicationHandler(bc, socket, path, users));
             } catch (IOException ex) {
                 return;
             }

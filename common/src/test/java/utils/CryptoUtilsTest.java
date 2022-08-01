@@ -32,7 +32,7 @@ class CryptoUtilsTest {
 
     @Test
     @BeforeAll
-    static void keyGeneration() throws NoSuchAlgorithmException, IOException, NoSuchProviderException {
+    static void keyGenerationTest() throws NoSuchAlgorithmException, IOException, NoSuchProviderException {
         Path file = tempDir.resolve("keys");
         generatedKey = CryptoUtils.keyGeneration(file.toString(), "testUser", "testPassphrase");
         assertAll(
@@ -42,7 +42,7 @@ class CryptoUtilsTest {
     }
 
     @Test
-    void getPrivate() throws Exception {
+    void getPrivateTest() throws Exception {
         PrivateKey privateKey = CryptoUtils.getPrivate(String.valueOf(Path.of(tempDir.toString(), "keys", "testUser", "privateKey.txt")));
         RSAPrivateKey privateKeyRSA = (RSAPrivateKey) privateKey;
         RSAPublicKey publicKeyRSA = (RSAPublicKey) generatedKey;
@@ -53,7 +53,7 @@ class CryptoUtilsTest {
     }
 
     @Test
-    void getPublic() throws Exception {
+    void getPublicTest() throws Exception {
         assertEquals(generatedKey, CryptoUtils.getPublic(String.valueOf(Path.of(tempDir.toString(), "keys", "testUser", "publicKey.txt"))));
     }
 
@@ -66,7 +66,7 @@ class CryptoUtilsTest {
     }
 
     @Test
-    void signString() throws Exception {
+    void signStringTest() throws Exception {
         String toSign = "signature";
         String signature = CryptoUtils.signString(CryptoUtils.getPrivate(String.valueOf(Path.of(tempDir.toString(), "keys", "testUser", "privateKey.txt"))), toSign);
         assertEquals(Base64.getEncoder().encodeToString(toSign.getBytes()), Base64.getEncoder().encodeToString(CryptoUtils.decryptBytes(
