@@ -21,7 +21,10 @@ public class BlockchainTxtFileManager implements BlockchainFileManager, Serializ
         try {
             ObjectInputStream ois = null;
             File f = new File(PATH);
-            if (!f.isFile() || !f.canRead()) return Collections.emptyList();
+            if (!f.isFile() || !f.canRead()) {
+                f.createNewFile();
+                return Collections.emptyList();
+            }
             FileInputStream fis = new FileInputStream(PATH);
             ois = new ObjectInputStream(fis);
             List<MinedBlock> read = (List<MinedBlock>) ois.readObject();

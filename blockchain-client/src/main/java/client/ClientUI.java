@@ -15,13 +15,13 @@ public class ClientUI {
         int port;
         String path;
         //Create config properties in project folder
-        try (InputStream input = new FileInputStream("blockchain-client/config.properties")) {
+        try (InputStream input = new FileInputStream("config.properties")) {
             Properties prop = new Properties();
             prop.load(input);
-            port = Integer.parseInt(prop.getProperty("node_port")); //Port of blockchain node - in future ip:port
+            //port = Integer.parseInt(prop.getProperty("node_port")); //Port of blockchain node - in future ip:port
             path = prop.getProperty("keys_path"); // Path to folder where the keys will be stored
         }
-        client = new Client(port, path);
+        client = new Client(1337, path);
         input = new Scanner(System.in);
     }
 

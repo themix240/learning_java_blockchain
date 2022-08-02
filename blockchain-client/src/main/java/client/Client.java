@@ -37,6 +37,7 @@ public class Client {
         this.port = port;
         client = new Socket("localhost", port);
         objectOutputStream = new ObjectOutputStream(client.getOutputStream());
+        objectOutputStream.flush();
         objectInputStream = new ObjectInputStream(client.getInputStream());
         mining = false;
         minerMaster = new MinerMaster(this);

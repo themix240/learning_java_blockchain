@@ -34,21 +34,22 @@ public class IntegrationTests {
                 1
         );
         Path userDatabase = Path.of(serverData.toString(), "userDB.txt");
-        ConnectionHandler connectionHandler = new ConnectionHandler(1337,1338, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
+        ConnectionHandler connectionHandler = new ConnectionHandler(10020, 10021, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
         Thread t = new Thread(connectionHandler);
         t.start();
-        Client client =  new Client(1337, clientData.toString());
+        Client client = new Client(10020, clientData.toString());
         assertTrue(client.registerUser("testUser2", "test"));
         client.quit();
         t.interrupt();
         try {
-            t.join();
+            t.join(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         assertTrue(Files.exists(Path.of(clientData.toString(), "testUser", "publicKey.txt")));
         assertTrue(Files.exists(Path.of(clientData.toString(), "testUser", "privateKey.txt")));
-        assertTrue(Files.exists(userDatabase));}
+        assertTrue(Files.exists(userDatabase));
+    }
 
     @Test
     @Order(2)
@@ -63,7 +64,7 @@ public class IntegrationTests {
         );
         Path userDatabase = Path.of(serverData.toString(), "userDB.txt");
         List<User> users = new ArrayList<>();
-        User testUser = new User("testUser",CryptoUtils.keyGeneration(clientData.toString(), "testUser", "test"));
+        User testUser = new User("testUser", CryptoUtils.keyGeneration(clientData.toString(), "testUser", "test"));
         users.add(testUser);
         File f = new File(String.valueOf(userDatabase));
         f.getParentFile().mkdirs();
@@ -73,19 +74,20 @@ public class IntegrationTests {
         outputStream1.writeObject(users);
         outputStream1.close();
         fileOutputStream.close();
-        ConnectionHandler connectionHandler = new ConnectionHandler(1000,1001, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
+        ConnectionHandler connectionHandler = new ConnectionHandler(1000, 1001, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
         Thread t = new Thread(connectionHandler);
         t.start();
-        Client client =  new Client(1000, clientData.toString());
+        Client client = new Client(1000, clientData.toString());
         assertTrue(client.loginUser("testUser", "test"));
         client.quit();
         t.interrupt();
         try {
-            t.join();
+            t.join(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
+
     @Test
     @Order(3)
     void clientMinedBlockTest() throws Exception {
@@ -93,13 +95,13 @@ public class IntegrationTests {
         Path serverData = tempDir.resolve("server-data");
         Path ipData = tempDir.resolve("ips.txt");
         Blockchain blockchainFirst = new Blockchain(
-                new BlockchainTxtFileManager(serverData.toString()+"/blockchain.txt"),
+                new BlockchainTxtFileManager(serverData.toString() + "/blockchain.txt"),
                 new ArrayList<>(),
                 0
         );
         Path userDatabase = Path.of(serverData.toString(), "userDB.txt");
         List<User> users = new ArrayList<>();
-        User testUser = new User("testUser",CryptoUtils.keyGeneration(clientData.toString(), "testUser", "test"));
+        User testUser = new User("testUser", CryptoUtils.keyGeneration(clientData.toString(), "testUser", "test"));
         users.add(testUser);
         File f = new File(String.valueOf(userDatabase));
         f.getParentFile().mkdirs();
@@ -109,25 +111,25 @@ public class IntegrationTests {
         outputStream1.writeObject(users);
         outputStream1.close();
         fileOutputStream.close();
-        ConnectionHandler connectionHandler = new ConnectionHandler(1004,1005, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
+        ConnectionHandler connectionHandler = new ConnectionHandler(1004, 1005, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
         Thread t = new Thread(connectionHandler);
         t.start();
-        Client client =  new Client(1004, clientData.toString());
+        Client client = new Client(1004, clientData.toString());
         assertTrue(client.loginUser("testUser", "test"));
         NewBlock block = new NewBlock(new ArrayList<>(), "0", 120);
         client.writeBlockData(block);
         client.quit();
         t.interrupt();
         try {
-            t.join();
+            t.join(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         assertEquals(1, blockchainFirst.getSize());
 
 
-
     }
+
     @Test
     void clientTransactionTest() throws Exception {
         Path clientData = tempDir.resolve("client-data");
@@ -150,42 +152,31 @@ public class IntegrationTests {
         fileOutputStream.close();
         List<MinedBlock> blocks = new ArrayList<>();
         List<Transaction> transactions = new ArrayList<>();
-       Transaction firstTransaction = new Transaction(null, publicKey, 100);
-       transactions.add(firstTransaction);
+        Transaction firstTransaction = new Transaction(null, publicKey, 100);
+        transactions.add(firstTransaction);
         MinedBlock firstBlock = new MinedBlock(new NewBlock(transactions, "0", 0), 1);
         blocks.add(firstBlock);
         Blockchain blockchainFirst = new Blockchain(
-                new BlockchainTxtFileManager(serverData.toString()+"/blockchain.txt"),
+                new BlockchainTxtFileManager(serverData.toString() + "/blockchain.txt"),
                 blocks,
                 0
         );
-        ConnectionHandler connectionHandler = new ConnectionHandler(1010,1011, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
+        ConnectionHandler connectionHandler = new ConnectionHandler(1010, 1011, blockchainFirst, String.valueOf(userDatabase), ipData.toString());
         Thread t = new Thread(connectionHandler);
         t.start();
-        Client client =  new Client(1010, clientData.toString());
+        Client client = new Client(1010, clientData.toString());
         assertTrue(client.loginUser("testUser", "test"));
         assertTrue(client.transaction("testUser2", 20, "test"));
         assertEquals(100, client.checkWallet()); // should be 100 until next block is mined
         BlockchainData blockchainData = blockchainFirst.getBlockchainData();
-        client.writeBlockData(new NewBlock(blockchainData.getTransactions(),blockchainData.getPrevHash(),100));
+        client.writeBlockData(new NewBlock(blockchainData.getTransactions(), blockchainData.getPrevHash(), 100));
         assertEquals(80, client.checkWallet());
         client.quit();
         t.interrupt();
         try {
-            t.join();
+            t.join(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-
     }
-    @Test
-    void clientCheckWalletTest() {
-
-    }
-    @Test
-    void p2pTest() {
-
-    }
-
 }

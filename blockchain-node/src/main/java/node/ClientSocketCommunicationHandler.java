@@ -31,8 +31,10 @@ public class ClientSocketCommunicationHandler implements Runnable {
         this.path = path;
         this.users = users;
         try {
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
+
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.flush();
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

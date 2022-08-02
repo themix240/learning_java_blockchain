@@ -40,7 +40,6 @@ public class ConnectionHandler implements Runnable {
             executorService = Executors.newFixedThreadPool(8);
             server = new ServerSocket(port);
             serverSocket = new ServerSocket(p2pPort);
-            server.setSoTimeout(1000);
             this.path = path;
             this.ips_path = ips_path;
             blocksToSend = bc.blockToSend;
@@ -116,7 +115,7 @@ public class ConnectionHandler implements Runnable {
         minedBlocksRefresher.setDaemon(true);
         p2pHandler.start();
         minedBlocksRefresher.start();
-        while (!Thread.interrupted()) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 Socket socket = server.accept();
                 loadUsers();
@@ -127,7 +126,16 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-    private void initConnectionsToNodes() { //Trying to implement p2p networking
+    private void initConnectionsToNodes()  { //Trying to implement p2p networking
+        if(!Files.exists(Path.of(ips_path))){
+            File ips = new File(ips_path);
+            ips.getParentFile().mkdirs();
+            try {
+                ips.createNewFile();
+            } catch (IOException e) {
+               return;
+            }
+        }
         try (Stream<String> input = Files.lines(Path.of(ips_path))) {
             input.map(s -> s.split(":"))
                     .map(split -> new InetSocketAddress(split[0], Integer.parseInt(split[1])))
