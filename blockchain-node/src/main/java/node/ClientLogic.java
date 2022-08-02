@@ -1,6 +1,5 @@
 package node;
 
-import utils.CryptoUtils;
 import utils.Transaction;
 import utils.User;
 
@@ -8,10 +7,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
-import java.net.Socket;
 import java.security.*;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
 import static node.BlockchainUtils.getWallet;
@@ -62,7 +59,7 @@ public class ClientLogic {
         if (calculateWallet() - amount < 0) {
             return false;
         } else {
-            return writeTransaction(selectedUser, amount);
+            return isTransactionPossible(selectedUser, amount);
         }
     }
 
@@ -70,13 +67,17 @@ public class ClientLogic {
         return getWallet(user.getPublicKey(), bc.getBlocks());
     }
 
-    public boolean writeTransaction(String selectedUser, int amount) throws IOException, ClassNotFoundException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public boolean isTransactionPossible(String selectedUser, int amount) throws IOException, ClassNotFoundException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         User r = findUser(selectedUser);
         assert r != null;
         Transaction t = new Transaction(user.getPublicKey(), r.getPublicKey(), amount);
-        bc.appendMessage(t);
-        return false;
+        int wallet = (BlockchainUtils.getWallet(user.getPublicKey(), bc.getBlocks()));
+        if (wallet - amount < 0) {
+            return false;
+        }
+        else return amount >= 0;
     }
+
 
     public boolean login(String username, byte[] challenge, byte[] decrypted) throws IOException, GeneralSecurityException, ClassNotFoundException, InterruptedException {
         user = findUser(username);

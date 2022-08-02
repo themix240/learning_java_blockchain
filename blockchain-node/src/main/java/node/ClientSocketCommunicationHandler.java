@@ -2,12 +2,14 @@ package node;
 
 import utils.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.security.GeneralSecurityException;
-import java.security.PublicKey;
+import java.security.*;
 import java.util.Base64;
 import java.util.List;
 import java.util.Random;
@@ -89,14 +91,26 @@ public class ClientSocketCommunicationHandler implements Runnable {
     }
 
     private void wallet() throws IOException {
-        objectOutputStream.writeInt(BlockchainUtils.getWallet(client.getUser().getPublicKey(), blockchain.getBlocks()));
+        objectOutputStream.writeInt(client.calculateWallet());
+        objectOutputStream.flush();
     }
 
-    private void transaction() throws IOException, ClassNotFoundException {
+    private void transaction() throws IOException, ClassNotFoundException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
         String selected = (String) objectInputStream.readObject();
         int amount = objectInputStream.readInt();
-
-
+       if(client.isTransactionPossible(selected, amount)){
+           objectOutputStream.writeByte(HEADERS.TRANSACTION_SUCCESFULL.data);
+           objectOutputStream.flush();
+           Transaction t = new Transaction(client.getUser().getPublicKey(), client.findUser(selected).getPublicKey(), amount);
+           objectOutputStream.writeObject(t.getHash());
+           String signature = (String) objectInputStream.readObject();
+           t.setSignature(Base64.getDecoder().decode(signature));
+           blockchain.appendMessage(t);
+       }
+       else {
+           objectOutputStream.writeByte(HEADERS.REGISTRATION_UNSUCCESFULL.data);
+           objectOutputStream.flush();
+       }
     }
 
     private void mined() throws IOException, ClassNotFoundException, InterruptedException {
@@ -130,7 +144,7 @@ public class ClientSocketCommunicationHandler implements Runnable {
         byte[] challenge = new byte[64];
         random.nextBytes(challenge);
 
-        byte[] encrypted = CryptoUtils.encryptBytes(challenge, client.findUser(username).getPublicKey() );
+        byte[] encrypted = CryptoUtils.encryptBytes(challenge, client.findUser(username).getPublicKey());
         objectOutputStream.writeObject(Base64.getEncoder().encodeToString(encrypted));
         byte[] decrypted = objectInputStream.readNBytes(64);
         success = client.login(username, challenge, decrypted);
