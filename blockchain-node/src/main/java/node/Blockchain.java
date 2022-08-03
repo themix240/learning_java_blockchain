@@ -101,9 +101,7 @@ public class Blockchain implements Serializable {
         MinedBlock mb = new MinedBlock(b, getSize() + 1);
         if (checkBlock(minedBlocks, mb, nonce)) {
             minedBlocks.add(mb);
-            if (blockToSend.isEmpty()) {
-                blockToSend.put(mb);
-            }
+            blockToSend.put(mb);
             blockchainFileManager.saveBlockchain(minedBlocks);
             updateNonce();
             return true;

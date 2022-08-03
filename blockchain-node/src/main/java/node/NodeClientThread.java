@@ -27,11 +27,18 @@ public class NodeClientThread implements Runnable {
     @Override
     public void run() {
         System.out.println("New node connection at " + socket.getInetAddress() + ":" + socket.getPort());
+        System.out.println("Sending blockchain");
+        try {
+            objectOutputStream.writeObject(bc);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         try {
             while(!Thread.currentThread().isInterrupted()) {
                 MinedBlock toSend = blocksToSend.take();
-                System.out.println("New Block occurred");
-                objectOutputStream.writeObject(bc);
+                System.out.println("New Block sended");
+                objectOutputStream.writeObject(toSend);
+                objectOutputStream.flush();
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
