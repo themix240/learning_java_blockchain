@@ -24,11 +24,6 @@ class BlockchainUtilsTest {
     @TempDir
     static Path tempDir;
 
-    @BeforeEach
-    void beforeEach() {
-        assertTrue(Files.isDirectory(tempDir));
-    }
-
     @Test
     void getWalletTest() throws IOException, ClassNotFoundException, NoSuchAlgorithmException, NoSuchProviderException {
         Path file = tempDir.resolve("test");

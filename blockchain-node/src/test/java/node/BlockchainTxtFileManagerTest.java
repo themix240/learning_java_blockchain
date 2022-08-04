@@ -23,11 +23,6 @@ class BlockchainTxtFileManagerTest {
     @TempDir
     private static Path tempDir;
 
-    @BeforeEach
-    void checkTempDir() {
-        assertTrue(Files.isDirectory(tempDir));
-    }
-
     @Test
     @Order(1)
     void saveBlockchainTest() throws IOException, ClassNotFoundException {

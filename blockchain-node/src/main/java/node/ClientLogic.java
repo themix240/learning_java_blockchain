@@ -27,9 +27,12 @@ public class ClientLogic {
     }
 
     public boolean register(String username, PublicKey publicKey) {
-            User usr = new User(username, publicKey);
-            saveUser(usr);
-            return true;
+            if(findUser(username) == null) {
+                User usr = new User(username, publicKey);
+                saveUser(usr);
+                return true;
+            }
+            else return false;
     }
 
     public void saveUser(User userToSave) {
@@ -54,14 +57,6 @@ public class ClientLogic {
         }
     }
 
-
-    public boolean transaction(String selectedUser, int amount) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-        if (calculateWallet() - amount < 0) {
-            return false;
-        } else {
-            return isTransactionPossible(selectedUser, amount);
-        }
-    }
 
     public int calculateWallet() {
         return getWallet(user.getPublicKey(), bc.getBlocks());
