@@ -20,7 +20,7 @@ public class Transaction implements Serializable {
 
     byte[] signature;
 
-    public PublicKey getReciver() {
+    public PublicKey getReceiver() {
         return reciver;
     }
 

@@ -15,13 +15,11 @@
         <groupId>com.griddynamics.mmorozowski.course.java</groupId>
         <artifactId>common</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <scope>tests</scope>
     </dependency>
     <dependency>
         <groupId>com.griddynamics.mmorozowski.course.java</groupId>
         <artifactId>blockchain-client</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <scope>tests</scope>
     </dependency>
     <dependency>
         <groupId>com.griddynamics.mmorozowski.course.java</groupId>

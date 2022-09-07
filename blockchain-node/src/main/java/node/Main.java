@@ -8,7 +8,7 @@ import java.util.Properties;
 import static node.BlockchainUtils.validate;
 
 public class Main {
-    public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException {
+    public static void main(String[] args) throws /*InterruptedException,*/ IOException/*, ClassNotFoundException*/ {
         if (!Files.exists(Path.of("config.properties"))) {
             createDefaultConfig();
         }
@@ -30,11 +30,12 @@ public class Main {
             throw new RuntimeException(e);
         }
         ConnectionHandler connectionHandler = new ConnectionHandler(port, p2pPort, bc, userDBPath, path);
-        Thread t = new Thread(connectionHandler);
+        //GS Thread t = new Thread(connectionHandler);
+        Thread t = new Thread(connectionHandler, "Blockchain Connection Handler"); //GS -naming threads is a good practice
         t.start();
-        System.out.println(bc);
-        System.out.println(bc.getSize());
-        System.out.println(validate(bc.getBlocks()));
+        //GS System.out.println(bc);
+        //GS System.out.println(bc.getSize());
+        //GS System.out.println(validate(bc.getBlocks()));
     }
 
     private static void createDefaultConfig() throws IOException {

@@ -6,5 +6,5 @@ resources
 blockchain-node.iml
 blockchain-node/dependency-reduced-pom.xml
 blockchain-client/dependency-reduced-pom.xml
-blockchain
-config.properties
+run-configs/blockchain-node-1/blockchain
+run-configs/blockchain-node-1/config.properties

@@ -41,7 +41,7 @@ public class Client {
         objectInputStream = new ObjectInputStream(client.getInputStream());
         mining = false;
         minerMaster = new MinerMaster(this);
-        minerMasterThread = new Thread(minerMaster);
+        minerMasterThread = new Thread(minerMaster, "Blockchain Miner Master Thread");
         minerMasterThread.start();
     }
 

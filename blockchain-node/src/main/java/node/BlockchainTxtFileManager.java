@@ -17,25 +17,16 @@ public class BlockchainTxtFileManager implements BlockchainFileManager, Serializ
         this.PATH = PATH;
     }
 
-    public List<MinedBlock> loadBlockchain() {
-        try {
-            ObjectInputStream ois = null;
-            File f = new File(PATH);
-            if (!f.isFile() || !f.canRead()) {
-                f.createNewFile();
-                return Collections.emptyList();
-            }
-            FileInputStream fis = new FileInputStream(PATH);
-            ois = new ObjectInputStream(fis);
-            List<MinedBlock> read = (List<MinedBlock>) ois.readObject();
-            return (Collections.synchronizedList(read));
-        }
-        catch(Exception ex){
-            return (List<MinedBlock>) new ArrayList<MinedBlock>();
+    public Blockchain loadBlockchain() {
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PATH)))
+        {
+                return (Blockchain) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void saveBlockchain(List<MinedBlock> minedBlocks)  {
+    public void saveBlockchain(Blockchain blockchain)  {
         ObjectOutputStream oos = null;
         FileOutputStream fout;
         if(!Files.exists(Path.of(PATH))){
@@ -50,7 +41,7 @@ public class BlockchainTxtFileManager implements BlockchainFileManager, Serializ
         try {
             fout = new FileOutputStream(PATH);
             oos = new ObjectOutputStream(fout);
-            oos.writeObject(minedBlocks);
+            oos.writeObject(blockchain);
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {

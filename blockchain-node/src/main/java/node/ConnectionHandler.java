@@ -13,8 +13,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -22,29 +20,26 @@ import java.util.stream.Stream;
 public class ConnectionHandler implements Runnable {
     private final ServerSocket server, serverSocket;
     private List<User> users = new ArrayList<>();
-    private final ExecutorService executorService;
 
     private  Blockchain bc;
     private final String path;
     private final String ipsPath;
-    private HashMap<InetSocketAddress, Boolean> connectedNodes = new HashMap<>();
+    private Set<InetSocketAddress> connectedNodes = new HashSet<>();
 
     private  BlockingQueue<MinedBlock> blocksToSend;
-    private List<BlockingQueue<MinedBlock>> clientBlocksToSend;
-    private Thread minedBlocksRefresher;
+    private List<BlockingQueue<MinedBlock>> connectedClientsBlockingQueues;
+    private List<Thread> runningThreads = new ArrayList<>();
     private Timer timer;
-    private Thread p2pHandler;
 
     public ConnectionHandler(int port, int p2pPort, Blockchain bc, String path, String ipsPath) {
         try {
             this.bc = bc;
-            executorService = Executors.newFixedThreadPool(8);
             server = new ServerSocket(port);
             serverSocket = new ServerSocket(p2pPort);
             this.path = path;
             this.ipsPath = ipsPath;
             blocksToSend = bc.blockToSend;
-            clientBlocksToSend = new ArrayList<>();
+            connectedClientsBlockingQueues = new ArrayList<>();
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
@@ -52,19 +47,23 @@ public class ConnectionHandler implements Runnable {
     }
     @Override
     public void run() {
-         minedBlocksRefresher = getMinedBlocksRefresher();
-         p2pHandler = getP2pHandler();
+        Thread minedBlocksRefresherThread = getMinedBlocksRefresher();
+        minedBlocksRefresherThread.start();
+        runningThreads.add(minedBlocksRefresherThread);
+        Thread p2pHandlerThread = getP2pHandler();
+        p2pHandlerThread.start();
+        runningThreads.add(p2pHandlerThread);
         timer = new Timer();
         timer.scheduleAtFixedRate(getTask(), 10000, 100000);
-        p2pHandler.setDaemon(true);
-        minedBlocksRefresher.setDaemon(true);
-        p2pHandler.start();
-        minedBlocksRefresher.start();
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 Socket socket = server.accept();
                 loadUsers();
-                executorService.submit(new ClientSocketCommunicationHandler(bc, socket, path, users));
+                Thread newClientConnectionThread = new Thread(
+                        new ClientSocketCommunicationHandler(bc,socket,path, users)
+                );
+                newClientConnectionThread.setName("Client Communication Thread");
+                newClientConnectionThread.start();
             } catch (IOException ex) {
                 return;
             }
@@ -75,7 +74,7 @@ public class ConnectionHandler implements Runnable {
         return new TimerTask() {
             @Override
             public void run() {
-                System.out.println("Trying to connect to other nodes");
+                //GS System.out.println("Trying to connect to other nodes");
                 initConnectionsToNodes();
             }
         };
@@ -88,13 +87,12 @@ public class ConnectionHandler implements Runnable {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
                         Socket p2p = serverSocket.accept();
-                        executorService.submit(new NodeServerThread(bc, p2p));
                     } catch (IOException e) {
                         return;
                     }
                 }
             }
-        });
+        }, "Blockchain P2P Handler");
     }
 
     private Thread getMinedBlocksRefresher() {
@@ -104,7 +102,7 @@ public class ConnectionHandler implements Runnable {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
                         MinedBlock block = blocksToSend.take();
-                        clientBlocksToSend.forEach(bq -> {
+                        connectedClientsBlockingQueues.forEach(bq -> {
                             try {
                                 bq.put(block);
                             } catch (InterruptedException e) {
@@ -117,7 +115,7 @@ public class ConnectionHandler implements Runnable {
                     }
                 }
             }
-        });
+        }, "Blockchain Mined Blocks Refresher");
     }
 
     private void initConnectionsToNodes()  { //Trying to implement p2p networking
@@ -125,26 +123,26 @@ public class ConnectionHandler implements Runnable {
         try (Stream<String> input = Files.lines(Path.of(ipsPath))) {
             input.map(s -> s.split(":"))
                     .map(split -> new InetSocketAddress(split[0], Integer.parseInt(split[1])))
-                    .forEach(getInetSocketAddressConsumer());
+                    .forEach(getInetSocketAddressConsumer()); //GS the results of 'getInetSocketAddressConsumer()' are not used
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Consumer<InetSocketAddress> getInetSocketAddressConsumer() {
-        return Adress -> {
+    private Consumer<InetSocketAddress> getInetSocketAddressConsumer() { //GS-wynik nie jest uzywany do niczego
+        return address -> { //GS - use lowercase name
             try {
-                if (connectedNodes.get(Adress) != null) {
-                    System.out.println("Already connected!");
+                if (connectedNodes.contains(address)) {
+                    //GS System.out.println("Already connected!");
                     return;
                 }
-                Socket clientSocket = new Socket(Adress.getAddress(), Adress.getPort());
-                connectedNodes.put(Adress, true);
-                BlockingQueue<MinedBlock> x = new ArrayBlockingQueue<>(1);
-                clientBlocksToSend.add(x);
-                executorService.submit(new NodeClientThread(bc, clientSocket, x));
+                Socket clientSocket = new Socket(address.getAddress(), address.getPort());
+                connectedNodes.add(address);
+                BlockingQueue<MinedBlock> minedBlocksQueueForNewThread = new ArrayBlockingQueue<>(1);
+                connectedClientsBlockingQueues.add(minedBlocksQueueForNewThread);
+                Thread nodeClient = new Thread(new NodeClientThread(bc, clientSocket, minedBlocksQueueForNewThread));
             } catch (ConnectException e) {
-                System.out.println("Connection refused at " + Adress.getAddress() + ":" + Adress.getPort());
+                //GS System.out.println("Connection refused at " + Adress.getAddress() + ":" + Adress.getPort());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -182,18 +180,14 @@ public class ConnectionHandler implements Runnable {
 
     public void shutdown() {
 
-        executorService.shutdownNow();
         try {
             server.close();
-            p2pHandler.interrupt();
-            minedBlocksRefresher.interrupt();
-            p2pHandler.join();
-            minedBlocksRefresher.join();
+            for (Thread runningThread : runningThreads) {
+                runningThread.join(10);
+            }
             timer.cancel();
             serverSocket.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
 

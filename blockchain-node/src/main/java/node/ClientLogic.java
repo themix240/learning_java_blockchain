@@ -67,10 +67,7 @@ public class ClientLogic {
         assert r != null;
         Transaction t = new Transaction(user.getPublicKey(), r.getPublicKey(), amount);
         int wallet = (BlockchainUtils.getWallet(user.getPublicKey(), bc.getBlocks()));
-        if (wallet - amount < 0) {
-            return false;
-        }
-        else return amount >= 0;
+       return amount >= 0 && wallet >= amount;
     }
 
 

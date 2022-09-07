@@ -54,7 +54,7 @@ public class MinerMaster implements Runnable {
         return Executors.newFixedThreadPool(8,
                 runnable -> {
                     Thread n = Executors.defaultThreadFactory().newThread(runnable);
-                    n.setDaemon(true);
+                    n.setName("Blockchain Miner Master Executor Thread");
                     return n;
                 });
     }

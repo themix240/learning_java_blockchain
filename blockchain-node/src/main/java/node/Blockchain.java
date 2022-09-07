@@ -24,8 +24,8 @@ import static node.BlockchainUtils.verifyTransaction;
 
 public class Blockchain implements Serializable {
     private static Blockchain instance;
-    private BlockchainFileManager blockchainFileManager;
-    private final List<Transaction> transactions = Collections.synchronizedList(new ArrayList<>());
+    private transient BlockchainFileManager blockchainFileManager;
+    private List<Transaction> transactions = Collections.synchronizedList(new ArrayList<>());
 
     private List<MinedBlock> minedBlocks = Collections.synchronizedList(new ArrayList<>());
     private int nonce;
@@ -40,23 +40,24 @@ public class Blockchain implements Serializable {
         instance = this;
     }
 
-    private Blockchain() throws IOException, ClassNotFoundException {
+    private Blockchain() { //GS throws IOException, ClassNotFoundException {
         try (InputStream inputStream = new FileInputStream("config.properties")) {
             Properties properties = new Properties();
             properties.load(inputStream);
             String PATH = properties.getProperty("blockchain_path");//path where blockchain is stored - required in jetbrains project
             String fileManagerType = properties.getProperty("blockchain_file_type");
-            if (fileManagerType.equals("txt"))
-                blockchainFileManager = new BlockchainTxtFileManager(PATH);
+            blockchainFileManager = new BlockchainTxtFileManager(PATH);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        minedBlocks.addAll(blockchainFileManager.loadBlockchain());
-        nonce = 0;
+        Blockchain toLoad = blockchainFileManager.loadBlockchain();
+        this.nonce = toLoad.nonce;
+        this.minedBlocks = toLoad.minedBlocks;
+        this.transactions = toLoad.transactions;
     }
 
-    public static Blockchain getInstance() throws IOException, ClassNotFoundException {
+    public static Blockchain getInstance() { //GS throws IOException, ClassNotFoundException {
         if (instance == null) {
             instance = new Blockchain();
         }
@@ -102,7 +103,10 @@ public class Blockchain implements Serializable {
         if (checkBlock(minedBlocks, mb, nonce)) {
             minedBlocks.add(mb);
             blockToSend.put(mb);
-            blockchainFileManager.saveBlockchain(minedBlocks);
+            System.out.println("Added block to blockchain:\n" + mb.toPrettyString());
+//            System.out.println("Current blockchain state:");
+//            System.out.println(this);
+            blockchainFileManager.saveBlockchain(this);
             updateNonce();
             return true;
         }
@@ -113,7 +117,7 @@ public class Blockchain implements Serializable {
         return minedBlocks;
     }
 
-    public synchronized void appendMessage(Transaction t) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public synchronized void appendMessage(Transaction t) { //GS throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         if (verifyTransaction(t)) {
             t.setId(transactions.size() + 1);
             transactions.add(t);
@@ -125,20 +129,21 @@ public class Blockchain implements Serializable {
     }
 
     private void updateNonce() {
-        if (minedBlocks.size() < 2) nonce += 1;
+        if (minedBlocks.size() < 2) nonce += 1; //GS or 'nonce++'
         else {
-            if (minedBlocks.get(minedBlocks.size() - 2).getTimeStamp() - minedBlocks.get(minedBlocks.size() - 1).getTimeStamp() < 2000)
-                nonce += 1;
-            else if (minedBlocks.get(minedBlocks.size() - 2).getTimeStamp() - minedBlocks.get(minedBlocks.size() - 1).getTimeStamp() > 5000)
-                nonce -= 1;
+            long minedTimeMs = minedBlocks.get(minedBlocks.size() - 1).getTimeStamp() - minedBlocks.get(minedBlocks.size() - 2).getTimeStamp(); //GS
+            System.out.println("minedTimeMs: " + minedTimeMs);//GS-for debugging only
+            if (minedTimeMs < 2000)
+                nonce++;
+            else if (minedTimeMs > 5000)
+                nonce--;
+            if (nonce < 0) nonce = 0;
         }
-        if (nonce < 0) nonce = 0;
-
     }
 
     public synchronized void replaceBlockchain(Blockchain newBlockchain) {
         instance = newBlockchain;
         minedBlocks = newBlockchain.getBlocks();
-        blockchainFileManager.saveBlockchain(minedBlocks);
+        blockchainFileManager.saveBlockchain(this);
     }
 }

@@ -7,7 +7,6 @@ import utils.GenerateKeys;
 import utils.NewBlock;
 import utils.User;
 
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ class MinerTest {
         NewBlock mined = miner.Mine();
         assertEquals(PREV_HASH, mined.getHashOfPrev());
         assertEquals(1, mined.transactions.size());
-        assertEquals(publicKey, mined.transactions.get(0).getReciver());
+        assertEquals(publicKey, mined.transactions.get(0).getReceiver());
         assertTrue(mined.getHash().startsWith("00"));
     }
 }

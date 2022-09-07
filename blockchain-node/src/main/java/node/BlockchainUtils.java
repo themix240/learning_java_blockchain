@@ -14,7 +14,7 @@ public class BlockchainUtils {
         int wallet = 0;
         for (MinedBlock b : minedBlocks) {
             for (Transaction t : b.getTransactions()) {
-                if (Objects.equals(t.getReciver(), pk)) {
+                if (Objects.equals(t.getReceiver(), pk)) {
                     wallet += t.getAmmount();
                 }
                 if (Objects.equals(t.getSender(), pk)) {
@@ -33,6 +33,7 @@ public class BlockchainUtils {
             String second = Base64.getEncoder().encodeToString(cipher.doFinal(t.getSignature()));
             return first.equals(second);
         } catch (Exception e) {
+           e.printStackTrace();
            return false;
         }
     }

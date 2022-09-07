@@ -35,11 +35,11 @@ class BlockchainTxtFileManagerTest {
         minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 2));
         minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 3));
         minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 4));
-        blockchainFileManager.saveBlockchain(minedBlocks);
+        blockchainFileManager.saveBlockchain(new Blockchain(blockchainFileManager, minedBlocks, 0));
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
-        List<MinedBlock> inputFromFile = (List<MinedBlock>) ois.readObject();
+        Blockchain inputFromFile = (Blockchain) ois.readObject();
         assertTrue(file.exists());
-        assertIterableEquals(minedBlocks, inputFromFile);
+        assertIterableEquals(minedBlocks, inputFromFile.getBlocks());
     }
 
     @Test
@@ -54,10 +54,10 @@ class BlockchainTxtFileManagerTest {
         minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 2));
         minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 3));
         minedBlocks.add(new MinedBlock(new NewBlock(new ArrayList<>(), "0", 122), 4));
-        blockchainFileManager.saveBlockchain(minedBlocks);
-        List<MinedBlock> inputFromFile = blockchainFileManager.loadBlockchain();
+        blockchainFileManager.saveBlockchain(new Blockchain(blockchainFileManager, minedBlocks, 0));
+        Blockchain inputFromFile = blockchainFileManager.loadBlockchain();
         assertTrue(file.exists());
-        assertIterableEquals(minedBlocks, inputFromFile);
+        assertIterableEquals(minedBlocks, inputFromFile.getBlocks());
     }
 
 }
