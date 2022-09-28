@@ -1,26 +1,23 @@
-package node;
+package node.core;
 
-import utils.BlockchainData;
-import utils.MinedBlock;
-import utils.NewBlock;
-import utils.Transaction;
+import node.utils.filemanager.BlockchainFileManager;
+import node.utils.filemanager.BlockchainTxtFileManager;
+import utils.blockchain.BlockchainData;
+import utils.blockchain.MinedBlock;
+import utils.blockchain.NewBlock;
+import utils.blockchain.Transaction;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import static java.lang.Math.min;
-import static node.BlockchainUtils.checkBlock;
-import static node.BlockchainUtils.verifyTransaction;
+import static node.utils.BlockchainUtils.checkBlock;
+import static node.utils.BlockchainUtils.verifyTransaction;
 
 public class Blockchain implements Serializable {
     private static Blockchain instance;
@@ -98,7 +95,7 @@ public class Blockchain implements Serializable {
         return minedBlocks.size() > 0 ? minedBlocks.get(minedBlocks.size() - 1).getHash() : "0";
     }
 
-    synchronized boolean acceptBlock(NewBlock b) throws InterruptedException {
+    public synchronized boolean acceptBlock(NewBlock b) throws InterruptedException {
         MinedBlock mb = new MinedBlock(b, getSize() + 1);
         if (checkBlock(minedBlocks, mb, nonce)) {
             minedBlocks.add(mb);

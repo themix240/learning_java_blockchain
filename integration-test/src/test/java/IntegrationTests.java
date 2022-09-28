@@ -1,19 +1,19 @@
-import client.Client;
-import node.Blockchain;
-import node.BlockchainTxtFileManager;
-import node.ConnectionHandler;
+import client.connection.Client;
+import node.core.Blockchain;
+import node.utils.filemanager.BlockchainTxtFileManager;
+import node.networking.ConnectionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import utils.*;
+import utils.blockchain.*;
+import utils.crypto.CryptoUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

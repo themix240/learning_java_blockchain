@@ -1,5 +1,7 @@
 package client;
 
+import client.connection.ClientUI;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

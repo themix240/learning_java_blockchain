@@ -1,7 +1,9 @@
-package node;
+package node.networking;
 
-import utils.MinedBlock;
-import utils.User;
+import node.core.Blockchain;
+import node.networking.p2p.NodeClientThread;
+import utils.blockchain.MinedBlock;
+import utils.blockchain.User;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -21,7 +23,7 @@ public class ConnectionHandler implements Runnable {
     private final ServerSocket server, serverSocket;
     private List<User> users = new ArrayList<>();
 
-    private  Blockchain bc;
+    private Blockchain bc;
     private final String path;
     private final String ipsPath;
     private Set<InetSocketAddress> connectedNodes = new HashSet<>();

@@ -1,7 +1,8 @@
-package node;
+package node.core;
 
-import utils.Transaction;
-import utils.User;
+import node.utils.BlockchainUtils;
+import utils.blockchain.Transaction;
+import utils.blockchain.User;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -11,7 +12,7 @@ import java.security.*;
 import java.util.Arrays;
 import java.util.List;
 
-import static node.BlockchainUtils.getWallet;
+import static node.utils.BlockchainUtils.getWallet;
 
 public class ClientLogic {
     private final List<User> users;

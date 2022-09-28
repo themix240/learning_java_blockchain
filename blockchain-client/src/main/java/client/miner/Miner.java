@@ -1,9 +1,9 @@
-package client;
+package client.miner;
 
-import utils.BlockchainData;
-import utils.NewBlock;
-import utils.Transaction;
-import utils.User;
+import utils.blockchain.BlockchainData;
+import utils.blockchain.NewBlock;
+import utils.blockchain.Transaction;
+import utils.blockchain.User;
 
 import java.util.ArrayList;
 import java.util.Random;

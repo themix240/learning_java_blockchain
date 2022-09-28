@@ -1,7 +1,7 @@
-package node;
+package node.utils;
 
-import utils.MinedBlock;
-import utils.Transaction;
+import utils.blockchain.MinedBlock;
+import utils.blockchain.Transaction;
 
 import javax.crypto.Cipher;
 import java.security.PublicKey;

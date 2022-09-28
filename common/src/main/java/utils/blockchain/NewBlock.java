@@ -1,4 +1,6 @@
-package utils;
+package utils.blockchain;
+
+import utils.crypto.StringUtil;
 
 import java.io.Serializable;
 import java.util.List;

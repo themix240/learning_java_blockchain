@@ -1,15 +1,14 @@
 package node;
 
-import org.junit.jupiter.api.BeforeEach;
+import node.utils.BlockchainUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import utils.CryptoUtils;
-import utils.MinedBlock;
-import utils.NewBlock;
-import utils.Transaction;
+import utils.crypto.CryptoUtils;
+import utils.blockchain.MinedBlock;
+import utils.blockchain.NewBlock;
+import utils.blockchain.Transaction;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;

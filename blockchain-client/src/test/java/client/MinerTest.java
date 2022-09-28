@@ -1,11 +1,12 @@
 package client;
 
+import client.miner.Miner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import utils.BlockchainData;
-import utils.GenerateKeys;
-import utils.NewBlock;
-import utils.User;
+import utils.blockchain.BlockchainData;
+import utils.crypto.GenerateKeys;
+import utils.blockchain.NewBlock;
+import utils.blockchain.User;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;

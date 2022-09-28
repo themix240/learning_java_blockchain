@@ -1,6 +1,7 @@
 package utils;
 
 import org.junit.jupiter.api.Test;
+import utils.crypto.StringUtil;
 
 import static org.junit.jupiter.api.Assertions.*;
 

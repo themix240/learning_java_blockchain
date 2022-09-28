@@ -1,11 +1,13 @@
 package node;
 
-import org.junit.jupiter.api.BeforeEach;
+import node.core.Blockchain;
+import node.utils.filemanager.BlockchainFileManager;
+import node.utils.filemanager.BlockchainTxtFileManager;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import utils.MinedBlock;
-import utils.NewBlock;
+import utils.blockchain.MinedBlock;
+import utils.blockchain.NewBlock;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -1,8 +1,8 @@
-package client;
+package client.miner;
 
-import utils.BlockchainData;
-import utils.NewBlock;
-import utils.User;
+import utils.blockchain.BlockchainData;
+import utils.blockchain.NewBlock;
+import utils.blockchain.User;
 
 import java.util.concurrent.Callable;
 

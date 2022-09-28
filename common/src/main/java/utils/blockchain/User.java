@@ -1,4 +1,4 @@
-package utils;
+package utils.blockchain;
 
 import java.io.Serializable;
 import java.security.PublicKey;

@@ -1,8 +1,6 @@
-package node;
+package node.utils.filemanager;
 
-import utils.MinedBlock;
-
-import java.util.List;
+import node.core.Blockchain;
 
 public interface BlockchainFileManager {
     void saveBlockchain(Blockchain blockchain);

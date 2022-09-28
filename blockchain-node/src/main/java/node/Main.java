@@ -1,11 +1,12 @@
 package node;
 
+import node.core.Blockchain;
+import node.networking.ConnectionHandler;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
-
-import static node.BlockchainUtils.validate;
 
 public class Main {
     public static void main(String[] args) throws /*InterruptedException,*/ IOException/*, ClassNotFoundException*/ {

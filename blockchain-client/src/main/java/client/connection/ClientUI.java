@@ -1,4 +1,5 @@
-package client;
+package client.connection;
+
 
 import java.io.FileInputStream;
 import java.io.IOException;

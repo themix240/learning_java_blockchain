@@ -1,17 +1,16 @@
 package node;
 
+import node.core.Blockchain;
+import node.core.ClientLogic;
+import node.utils.filemanager.BlockchainTxtFileManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import utils.GenerateKeys;
-import utils.User;
+import utils.crypto.GenerateKeys;
+import utils.blockchain.User;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 

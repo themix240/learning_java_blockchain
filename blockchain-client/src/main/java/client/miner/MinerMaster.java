@@ -1,8 +1,9 @@
-package client;
+package client.miner;
 
-import utils.BlockchainData;
-import utils.NewBlock;
-import utils.User;
+import client.connection.Client;
+import utils.blockchain.BlockchainData;
+import utils.blockchain.NewBlock;
+import utils.blockchain.User;
 
 import java.io.IOException;
 import java.util.Arrays;

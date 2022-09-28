@@ -1,4 +1,4 @@
-package utils;
+package utils.crypto;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;

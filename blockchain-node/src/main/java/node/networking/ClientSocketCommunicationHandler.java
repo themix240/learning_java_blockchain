@@ -1,6 +1,12 @@
-package node;
+package node.networking;
 
+import node.core.Blockchain;
+import node.core.ClientLogic;
 import utils.*;
+import utils.blockchain.NewBlock;
+import utils.blockchain.Transaction;
+import utils.blockchain.User;
+import utils.crypto.CryptoUtils;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;

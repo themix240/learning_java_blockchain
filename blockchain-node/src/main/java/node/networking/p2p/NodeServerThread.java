@@ -1,11 +1,12 @@
-package node;
+package node.networking.p2p;
 
-import utils.MinedBlock;
-import utils.NewBlock;
+import node.core.Blockchain;
+import node.utils.BlockchainUtils;
+import utils.blockchain.MinedBlock;
+import utils.blockchain.NewBlock;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class NodeServerThread extends Thread { //GS-wrong class name, it's not a thread

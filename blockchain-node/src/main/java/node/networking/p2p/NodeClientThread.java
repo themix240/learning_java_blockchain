@@ -1,6 +1,7 @@
-package node;
+package node.networking.p2p;
 
-import utils.MinedBlock;
+import node.core.Blockchain;
+import utils.blockchain.MinedBlock;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

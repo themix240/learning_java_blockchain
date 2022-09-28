@@ -1,9 +1,10 @@
-package client;
+package client.connection;
 
-import utils.BlockchainData;
-import utils.CryptoUtils;
-import utils.NewBlock;
-import utils.User;
+import client.miner.MinerMaster;
+import utils.blockchain.BlockchainData;
+import utils.crypto.CryptoUtils;
+import utils.blockchain.NewBlock;
+import utils.blockchain.User;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -16,8 +17,8 @@ import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Scanner;
 
-import static utils.CryptoUtils.getPublic;
-import static utils.CryptoUtils.signString;
+import static utils.crypto.CryptoUtils.getPublic;
+import static utils.crypto.CryptoUtils.signString;
 import static utils.HEADERS.*;
 
 public class Client {
@@ -28,7 +29,7 @@ public class Client {
     Scanner in;
     String path;
     int port;
-    boolean mining;
+    public boolean mining;
     MinerMaster minerMaster;
     Thread minerMasterThread;
 

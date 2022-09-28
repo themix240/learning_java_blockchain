@@ -1,13 +1,10 @@
-package node;
+package node.utils.filemanager;
 
-import utils.MinedBlock;
+import node.core.Blockchain;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class BlockchainTxtFileManager implements BlockchainFileManager, Serializable {
     String PATH;
