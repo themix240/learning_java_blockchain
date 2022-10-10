@@ -8,3 +8,4 @@ blockchain-node/dependency-reduced-pom.xml
 blockchain-client/dependency-reduced-pom.xml
 run-configs/blockchain-node-1/blockchain
 run-configs/blockchain-node-1/config.properties
+Dockerfile

@@ -18,6 +18,11 @@ public class Main {
             ui.start();
     }
 
+    /**
+     * Default config is created when config.properties file not exists,
+     * prevents crashes for first startup of client.
+     * @throws IOException
+     */
     private static void createDefaultConfig() throws IOException {
             File file = new File("config.properties");
             if (file.createNewFile()) {

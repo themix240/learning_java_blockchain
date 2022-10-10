@@ -11,11 +11,34 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Class which manages Miners.
+ * Uses ExecutorService
+ * @see ExecutorService
+ * @author Morozowski Mikołaj
+ * @version 1.0-SNAPSHOT
+ */
 public class MinerMaster implements Runnable {
     Client client;
 
+    /**
+     * Default constructor.
+     * @param client client connected to blockchain, owner of MinerMaster.
+     */
+    public MinerMaster(Client client) {
+        this.client = client;
+    }
+
+    /**
+     * Starts mining if mining flag is <code>true</code>.
+     * <p>Inits <code>ExecutorService</code> then adds 8 <code>MinerCallable</code> objects, if any of
+     * <code>Callable</code> returns <code>NewBlock</code>, shutdowns
+     * <code>ExecutorService</code> and sends this <code>NewBlock</code> to blockchain</p>
+     * @see MinerCallable
+     * @see ExecutorService
+     */
     @Override
-    public void run() {
+    public void run()  {
         while (!Thread.currentThread().isInterrupted()) {
             if (client.mining) {
                 try {
@@ -34,23 +57,17 @@ public class MinerMaster implements Runnable {
                     ));
                     client.writeBlockData(minedBlock);
                     es.shutdownNow();
-                } catch (IOException e) {
+                } catch (IOException | ClassNotFoundException | ExecutionException | InterruptedException e) {
                     throw new RuntimeException(e);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                  return;
                 }
             }
         }
     }
 
-    public MinerMaster(Client client) {
-        this.client = client;
-    }
-
+    /**
+     * Initializes new <code>ExecutorService</code> with 8 <code>Threads</code>
+     * @return Initialized <code>ExecutorService</code>
+     */
     private ExecutorService initExecutorService() {
         return Executors.newFixedThreadPool(8,
                 runnable -> {

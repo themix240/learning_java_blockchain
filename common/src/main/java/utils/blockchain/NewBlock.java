@@ -5,8 +5,11 @@ import utils.crypto.StringUtil;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Mutable Block used in Blockchain.
+ */
 public class NewBlock implements Serializable {
-    public List<Transaction> transactions;
+     public List<Transaction> transactions;
 
     String hashOfPrev;
 

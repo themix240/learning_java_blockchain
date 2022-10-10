@@ -51,7 +51,7 @@ public class Main {
             properties.setProperty("blockchain_file_type", "txt");
             properties.store(new FileOutputStream(file), null);
         }
-       File data = new File("blockchain/serverData/userDB.txt");
+        File data = new File("blockchain/serverData/userDB.txt");
         data.getParentFile().mkdirs();
         data.createNewFile();
 

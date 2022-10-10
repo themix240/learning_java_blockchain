@@ -4,34 +4,57 @@ package client.connection;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.util.Properties;
 import java.util.Scanner;
 
+/**
+ * Console user interface for client logic.
+ * Allows interacting with blockchain.
+ * @see Client
+ * @author Mikołaj Morozowski
+ */
 public class ClientUI {
     Scanner input;
     Client client;
 
-
+    /**
+     *
+     * Creates new <code>ClientUI</code> and load parameters from config.properties file.
+     * Loads port and path from config file.
+     * <p>Starts {@link Client#Client(int, String)  Client()} with port and path loaded from <code>config.properties.</code></p>
+     * Also creates new {@link Scanner#Scanner(InputStream) <code>Scanner</code>} used for reading user input from standard input.
+     *
+     * @throws IOException  parsing config file went wrong.
+     */
     public ClientUI() throws IOException {
         int port;
         String path;
-        //Create config properties in project folder
         try (InputStream input = new FileInputStream("config.properties")) {
             Properties prop = new Properties();
             prop.load(input);
-            //port = Integer.parseInt(prop.getProperty("node_port")); //Port of blockchain node - in future ip:port
+            port = Integer.parseInt(prop.getProperty("node_port")); //Port of blockchain node - in future ip:port
             path = prop.getProperty("keys_path"); // Path to folder where the keys will be stored
         }
-        client = new Client(1337, path);
+        client = new Client(port, path);
         input = new Scanner(System.in);
     }
 
+    /**
+     * Prints login menu to standard output.
+     */
     private void printLoginMenu() {
         System.out.println("---MENU---\n" +
                 "1.Log in\n2.Register\n");
     }
 
-    private void MainMenu() throws Exception {
+    /**
+     * Prints main menu and checks option selected by user.
+     * @throws IOException something with user input goes wrong.
+     * @throws GeneralSecurityException something with transaction goes wrong.
+     */
+
+    private void MainMenu() throws IOException, GeneralSecurityException, ClassNotFoundException {
         System.out.println("1. Switch mining\n" +
                 "2. Check Wallet\n" +
                 "3. Make transaction\n" +
@@ -69,6 +92,10 @@ public class ClientUI {
         }
     }
 
+    /**
+     * Gets user credentials from standard input.
+     * @return 2 element array with credentials.
+     */
     private String[] getCredentials() {
         String[] output = new String[2];
         System.out.println("Username:");
@@ -78,6 +105,11 @@ public class ClientUI {
         return output;
     }
 
+    /**
+     * Starts UI with login menu then calls selected Client methods.
+     * @throws Exception something with Client method goes wrong.
+     * @see Client
+     */
     public void start() throws Exception {
         printLoginMenu();
         int option = Integer.parseInt(input.nextLine());

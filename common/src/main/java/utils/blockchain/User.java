@@ -4,8 +4,21 @@ import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.Objects;
 
+/**
+ * Consist data about user in blockchain.
+ * Has publickey of user. Private Key needs to be loaded from disk.
+ */
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
+    private String username;
+
+    private PublicKey publicKey;
+
+
+    public User(String username, PublicKey publicKey) {
+        this.username = username;
+        this.publicKey = publicKey;
+    }
 
     public User(String username) {
         this.username = username;
@@ -15,17 +28,8 @@ public class User implements Serializable {
         return username;
     }
 
-    private String username;
-
     public PublicKey getPublicKey() {
         return publicKey;
-    }
-
-    private PublicKey publicKey;
-
-    public User(String username, PublicKey publicKey) {
-        this.username = username;
-        this.publicKey = publicKey;
     }
 
     @Override

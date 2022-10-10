@@ -24,7 +24,7 @@ class BlockchainUtilsTest {
     static Path tempDir;
 
     @Test
-    void getWalletTest() throws IOException, ClassNotFoundException, NoSuchAlgorithmException, NoSuchProviderException {
+    void getWalletTest() throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
         Path file = tempDir.resolve("test");
         PublicKey firstUser = CryptoUtils.keyGeneration(file.toAbsolutePath().toString(), "firstUser", "test");
         PublicKey secondUser = CryptoUtils.keyGeneration(file.toAbsolutePath().toString(), "secondUser", "test");

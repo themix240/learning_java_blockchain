@@ -6,47 +6,52 @@ import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.Base64;
 
+/**
+ * Consists data about transaction, sender, receiver, amount.
+ * Needs to be signed by owner to be valid.
+ */
 public class Transaction implements Serializable {
-    private PublicKey sender;
-    private PublicKey reciver;
-    private int ammount;
+    private final PublicKey sender;
+    private final PublicKey receiver;
+    private final int amount;
     private int id;
+    private byte[] signature;
 
-    public int getId() {
-        return id;
+    public Transaction(PublicKey sender, PublicKey receiver, int amount) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.amount = amount;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    byte[] signature;
-
-    public PublicKey getReceiver() {
-        return reciver;
+    public int getId() {
+        return id;
     }
 
-    public int getAmmount() {
-        return ammount;
+    public int getAmount() {
+        return amount;
     }
 
     public byte[] getSignature() {
         return signature;
     }
 
-    public PublicKey getSender() {
-        return sender;
+    public String getHash() {
+        return StringUtil.applySha256(Base64.getEncoder().encodeToString(sender.getEncoded()) +
+                Base64.getEncoder().encodeToString(receiver.getEncoded()) +
+                amount);
     }
 
-    public Transaction(PublicKey sender, PublicKey reciver, int ammount){
-        this.sender = sender;
-        this.reciver = reciver;
-        this.ammount = ammount;
+
+    public PublicKey getReceiver() {
+        return receiver;
     }
-    public String getHash(){
-        return StringUtil.applySha256(Base64.getEncoder().encodeToString(sender.getEncoded())+
-                Base64.getEncoder().encodeToString(reciver.getEncoded())+
-                String.valueOf(ammount));
+
+    public PublicKey getSender() {
+        return sender;
     }
 
     public void setSignature(byte[] signature) {
@@ -55,7 +60,7 @@ public class Transaction implements Serializable {
 
     @Override
     public String toString() {
-        return "Transaction:" + String.valueOf(id);
+        return "Transaction:" + id;
 
     }
 }

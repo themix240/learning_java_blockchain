@@ -12,6 +12,7 @@ import utils.crypto.CryptoUtils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ public class IntegrationTests {
 
     @Test
     @Order(1)
-    void clientRegisterTest() throws NoSuchAlgorithmException, IOException, NoSuchProviderException, ClassNotFoundException, InterruptedException {
+    void clientRegisterTest() throws GeneralSecurityException, IOException {
         Blockchain blockchainFirst = new Blockchain(
                 new BlockchainTxtFileManager(serverData.toString()),
                 new ArrayList<>(),

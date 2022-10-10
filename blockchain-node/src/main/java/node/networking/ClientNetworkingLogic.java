@@ -20,7 +20,11 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 
-public class ClientSocketCommunicationHandler implements Runnable {
+/**
+ * Class which is responsible for communication between node and client,
+ * Handles all data exchange between node and client.
+ */
+public class ClientNetworkingLogic implements Runnable {
 
     Blockchain blockchain;
     Socket socket;
@@ -31,7 +35,14 @@ public class ClientSocketCommunicationHandler implements Runnable {
 
     ClientLogic client;
 
-    public ClientSocketCommunicationHandler(Blockchain blockchain, Socket socket, String path, List<User> users) {
+    /**
+     * Default constructor.
+     * @param blockchain reference to blockchain used in communication with client.
+     * @param socket socket with connected client.
+     * @param path path for saving user database.
+     * @param users list of all users data saved in node, username, public key pairs.
+     */
+    public ClientNetworkingLogic(Blockchain blockchain, Socket socket, String path, List<User> users) {
         this.blockchain = blockchain;
         this.socket = socket;
         this.path = path;
@@ -55,6 +66,10 @@ public class ClientSocketCommunicationHandler implements Runnable {
         objectOutputStream.writeByte(HEADERS.REGISTRATION_UNSUCCESFULL.data);
     }
 
+    /**
+     * Main logic loop.
+     * Starts with login or register. Then starts communication loop.
+     */
     @Override
     public void run() {
         try {
@@ -98,11 +113,29 @@ public class ClientSocketCommunicationHandler implements Runnable {
 
     }
 
+    /**
+     * Sends wallet value of user to connected client.
+     * @throws IOException
+     */
     private void wallet() throws IOException {
         objectOutputStream.writeInt(client.calculateWallet());
         objectOutputStream.flush();
     }
 
+    /**
+     * Method get transaction data from client then check if transaction is possible.
+     * Then it digitally signs transaction with signature which client send.
+     * If it is possible then it appends transaction to blockchain waiting queue.
+     * Transaction is added to next mined block.
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws NoSuchPaddingException
+     * @throws IllegalBlockSizeException
+     * @throws NoSuchAlgorithmException
+     * @throws BadPaddingException
+     * @throws InvalidKeyException
+     * @throws SignatureException
+     */
     private void transaction() throws IOException, ClassNotFoundException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SignatureException {
         String selected = (String) objectInputStream.readObject();
         int amount = objectInputStream.readInt();
@@ -113,7 +146,7 @@ public class ClientSocketCommunicationHandler implements Runnable {
            objectOutputStream.writeObject(t.getHash());
            String signature = (String) objectInputStream.readObject();
            t.setSignature(Base64.getDecoder().decode(signature));
-           blockchain.appendMessage(t);
+           blockchain.appendTransaction(t);
        }
        else {
            objectOutputStream.writeByte(HEADERS.REGISTRATION_UNSUCCESFULL.data);
@@ -121,6 +154,13 @@ public class ClientSocketCommunicationHandler implements Runnable {
        }
     }
 
+    /**
+     * Calling blockchain validation method with data sent from user.
+     * @see Blockchain#acceptBlock(NewBlock)
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws InterruptedException
+     */
     private void mined() throws IOException, ClassNotFoundException, InterruptedException {
         NewBlock block = (NewBlock) objectInputStream.readObject();
         blockchain.acceptBlock(block);
@@ -130,6 +170,13 @@ public class ClientSocketCommunicationHandler implements Runnable {
         objectOutputStream.writeObject(blockchain.getBlockchainData());
     }
 
+    /**
+     * Method for registering user, it checks if username is not taken.
+     * @return True if registration is successful, False otherwise.
+     * @see ClientLogic#register(String, PublicKey)
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     private boolean register() throws IOException, ClassNotFoundException {
         boolean success;
         String username = (String) objectInputStream.readObject();
@@ -145,6 +192,15 @@ public class ClientSocketCommunicationHandler implements Runnable {
         return success;
     }
 
+    /**
+     * Method for login users.
+     * Sends challenge byte array encrypted with user public key and checks if user can decrypt it with correct private key.
+     * @return True if login is successful, False otherwise.
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws GeneralSecurityException
+     * @throws InterruptedException
+     */
     private boolean login() throws IOException, ClassNotFoundException, GeneralSecurityException, InterruptedException {
         boolean success;
         String username = (String) objectInputStream.readObject();
